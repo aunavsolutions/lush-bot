@@ -186,8 +186,11 @@ async function handleAIResponse(message, content, guildConfig) {
       addToChatHistory(message.channel.id, 'assistant', respuesta);
 
       db_historial.registrar('gemini', null, message.channel.id);
+    } else {
+      await message.channel.send("Uff, me quedé pensando en otra cosa... ¿me lo repites? 😅");
     }
   } catch (error) {
     console.error('[MessageCreate] Error:', error.message);
+    await message.channel.send("Uff, me dio un calambre cerebral. ¡Intenta hablarme de nuevo! 🧠⚡");
   }
 }
