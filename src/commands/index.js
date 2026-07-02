@@ -68,15 +68,7 @@ export const commands = [
     .setDescription('Vende recursos')
     .toJSON(),
 
-  new SlashCommandBuilder()
-    .setName('outfit')
-    .setDescription('Idea de outfit para Audition')
-    .toJSON(),
 
-  new SlashCommandBuilder()
-    .setName('duo')
-    .setDescription('Partida simulada')
-    .toJSON(),
 
   new SlashCommandBuilder()
     .setName('recomendar')
@@ -498,11 +490,11 @@ export async function handleCommand(interaction) {
       db_economia.actualizarTrabajo(userId);
 
       const trabajos = [
-        `Hiciste de DJ en una partida de Audition y ganaste **${ganancia}** 💰`,
-        `Vendiste outfits de segunda mano y ganaste **${ganancia}** 💰`,
-        `Diste clases de 8-Key a novatos y ganaste **${ganancia}** 💰`,
-        `Organizaste un torneo en el den y ganaste **${ganancia}** 💰`,
-        `Hiciste delivery de combos perfectos y ganaste **${ganancia}** 💰`,
+        `Hiciste de streamer por unas horas y ganaste **${ganancia}** 💰`,
+        `Vendiste cosas en línea y ganaste **${ganancia}** 💰`,
+        `Diste clases particulares y ganaste **${ganancia}** 💰`,
+        `Organizaste un evento en el server y ganaste **${ganancia}** 💰`,
+        `Hiciste un encargo express y ganaste **${ganancia}** 💰`,
       ];
 
       return interaction.reply(trabajos[Math.floor(Math.random() * trabajos.length)]);
@@ -527,41 +519,6 @@ export async function handleCommand(interaction) {
     // ═══════════════════════════════════════════════════════════════
     // 🎮 MINI-JUEGOS CON IA
     // ═══════════════════════════════════════════════════════════════
-
-    case 'outfit': {
-      await interaction.deferReply();
-      try {
-        const respuesta = await consultarGemini(
-          'Genera una idea de outfit para Audition Latino. Incluye: top, bottom, zapatos, accesorio, y un nombre creativo para el look. Formato corto y divertido, en español. Máximo 5 líneas.'
-        );
-        const embed = new EmbedBuilder()
-          .setTitle('👗 Outfit Generator')
-          .setDescription(respuesta)
-          .setColor('#E91E63')
-          .setTimestamp();
-        return interaction.editReply({ embeds: [embed] });
-      } catch {
-        return interaction.editReply('Se me trabó la creatividad, intenta de nuevo.');
-      }
-    }
-
-    case 'duo': {
-      await interaction.deferReply();
-      try {
-        const respuesta = await consultarGemini(
-          `Simula una partida corta de Audition Latino entre "${interaction.user.username}" y un oponente inventado. ` +
-          'Incluye: modo de juego, canción, puntajes, y un ganador. Hazlo dramático y divertido. Máximo 6 líneas, en español.'
-        );
-        const embed = new EmbedBuilder()
-          .setTitle('🎮 Partida Simulada')
-          .setDescription(respuesta)
-          .setColor('#3498DB')
-          .setTimestamp();
-        return interaction.editReply({ embeds: [embed] });
-      } catch {
-        return interaction.editReply('La partida se desconectó, intenta de nuevo.');
-      }
-    }
 
     case 'recomendar': {
       await interaction.deferReply();
