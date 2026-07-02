@@ -4,7 +4,31 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { db_frases, db_lore, db_nombres } from './database.js';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Helper de rotación de claves
+const getApiKeys = () => {
+  return (process.env.GEMINI_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+};
+
+async function ejecutarConRotacion(action) {
+  const keys = getApiKeys();
+  if (keys.length === 0) {
+    throw new Error('No se configuraron API Keys de Gemini.');
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    try {
+      const genAI = new GoogleGenerativeAI(key);
+      return await action(genAI);
+    } catch (error) {
+      console.error(`[Brain] Error con API Key #${i + 1}:`, error.message);
+      if (i === keys.length - 1) {
+        throw error; // Se agotaron los reintentos
+      }
+      console.log(`[Brain] Rotando a la siguiente API Key...`);
+    }
+  }
+}
 
 // Construye el contexto del squad para que Gemini lo entienda
 function buildSquadContext() {
@@ -78,36 +102,38 @@ function formatHistory(historialChat) {
 // Respuesta rápida a un mensaje de conversación
 export async function responderMensaje(mensaje, historialChat = [], guildConfig = {}, userId = null, discordName = '') {
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: getSystemPrompt(guildConfig, userId, discordName),
-    });
+    return await ejecutarConRotacion(async (genAI) => {
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: getSystemPrompt(guildConfig, userId, discordName),
+      });
 
-    const chatHistory = formatHistory(historialChat.slice(-6));
-    
-    const chat = model.startChat({
-      history: chatHistory,
-      generationConfig: {
-        maxOutputTokens: 800,
-      },
-    });
+      const chatHistory = formatHistory(historialChat.slice(-6));
+      
+      const chat = model.startChat({
+        history: chatHistory,
+        generationConfig: {
+          maxOutputTokens: 800,
+        },
+      });
 
-    const result = await chat.sendMessage(mensaje);
-    let texto = result.response.text().trim() || null;
-    
-    if (texto && userId) {
-      // Extraer el nombre si existe
-      const nameMatch = texto.match(/\[NEW_NAME:(.+?)\]/i);
-      if (nameMatch && nameMatch[1]) {
-        const newName = nameMatch[1].trim();
-        db_nombres.guardar(userId, newName);
-        texto = texto.replace(/\[NEW_NAME:.+?\]/ig, '').trim();
+      const result = await chat.sendMessage(mensaje);
+      let texto = result.response.text().trim() || null;
+      
+      if (texto && userId) {
+        // Extraer el nombre si existe
+        const nameMatch = texto.match(/\[NEW_NAME:(.+?)\]/i);
+        if (nameMatch && nameMatch[1]) {
+          const newName = nameMatch[1].trim();
+          db_nombres.guardar(userId, newName);
+          texto = texto.replace(/\[NEW_NAME:.+?\]/ig, '').trim();
+        }
       }
-    }
-    
-    return texto;
+      
+      return texto;
+    });
   } catch (error) {
-    console.error('[Brain] Error al generar respuesta:', error.message);
+    console.error('[Brain] Error al generar respuesta con rotación:', error.message);
     return null;
   }
 }
@@ -131,31 +157,35 @@ export async function generarEventoRandom(guildConfig = {}) {
   prompt += 'Máximo 1-2 líneas. Sin contexto adicional.';
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: getSystemPrompt(guildConfig),
-      generationConfig: { maxOutputTokens: 300 }
-    });
+    return await ejecutarConRotacion(async (genAI) => {
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: getSystemPrompt(guildConfig),
+        generationConfig: { maxOutputTokens: 300 }
+      });
 
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim() || null;
+      const result = await model.generateContent(prompt);
+      return result.response.text().trim() || null;
+    });
   } catch (error) {
-    console.error('[Brain] Error en evento random:', error);
+    console.error('[Brain] Error en evento random con rotación:', error.message);
     return null;
   }
 }
 
 export async function consultarGemini(promptTexto) {
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: { maxOutputTokens: 800 }
+    return await ejecutarConRotacion(async (genAI) => {
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        generationConfig: { maxOutputTokens: 800 }
+      });
+      
+      const result = await model.generateContent(promptTexto);
+      return result.response.text();
     });
-    
-    const result = await model.generateContent(promptTexto);
-    return result.response.text();
   } catch (error) {
-    console.error('[Brain] Error en consulta directa:', error);
+    console.error('[Brain] Error en consulta directa con rotación:', error.message);
     return 'Se me trabó el cerebro, intenta de nuevo...';
   }
 }
@@ -166,19 +196,21 @@ export async function debeResponder(mensaje, guildConfig = {}) {
   if (mensaje.includes('?')) return true;
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: `Eres el bot de una comunidad de Discord llamada Lush. Decides si vale la pena responder un mensaje o dejarlo pasar.
+    return await ejecutarConRotacion(async (genAI) => {
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: `Eres el bot de una comunidad de Discord llamada Lush. Decides si vale la pena responder un mensaje o dejarlo pasar.
 Responde SOLO con "si" o "no". Sin explicaciones.
 El contexto de la familia: ${buildSquadContext().slice(0, 500)}`,
-      generationConfig: { maxOutputTokens: 10 }
-    });
+        generationConfig: { maxOutputTokens: 10 }
+      });
 
-    const prompt = `¿Vale la pena que el bot responda esto? "${mensaje}"`;
-    const result = await model.generateContent(prompt);
-    const answer = result.response.text().trim().toLowerCase();
-    
-    return answer === 'si' || answer === 'sí';
+      const prompt = `¿Vale la pena que el bot responda esto? "${mensaje}"`;
+      const result = await model.generateContent(prompt);
+      const answer = result.response.text().trim().toLowerCase();
+      
+      return answer === 'si' || answer === 'sí';
+    });
   } catch (error) {
     return false;
   }

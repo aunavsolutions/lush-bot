@@ -166,6 +166,35 @@ export default async function onMessageCreate(message) {
 
 // ── Handler centralizado de respuesta IA ──────────────────────────────────
 
+async function enviarRespuestaFallback(message) {
+  try {
+    const frase = db_frases.obtenerRandom();
+    if (frase && Math.random() < 0.6) {
+      const intros = [
+        `Uff, me quedé pensando... pero oye, me acordé de algo que dijo **${frase.autor || 'alguien'}**:`,
+        `No sé qué decirte a eso, pero me dio nostalgia esta frase:`,
+        `Espera, se me cruzaron los cables. En fin, ¿se acuerdan de esto?`
+      ];
+      const intro = intros[Math.floor(Math.random() * intros.length)];
+      return message.channel.send(`${intro}\n> "${frase.texto}"`);
+    }
+  } catch (e) {
+    console.error('[Fallback] Error al obtener frase:', e.message);
+  }
+
+  const respuestasCasuales = [
+    "Jajaja total.",
+    "Qué cosas, ¿no? 😅",
+    "No sé qué decirte a eso la verdad.",
+    "Interesante... cuéntame más.",
+    "Ando un poco distraído hoy, disculpa.",
+    "Uff, me quedé pensando en otra cosa.",
+    "Qué loco todo eso."
+  ];
+  const respuestaC = respuestasCasuales[Math.floor(Math.random() * respuestasCasuales.length)];
+  return message.channel.send(respuestaC);
+}
+
 async function handleAIResponse(message, content, guildConfig) {
   try {
     await message.channel.sendTyping();
@@ -187,10 +216,10 @@ async function handleAIResponse(message, content, guildConfig) {
 
       db_historial.registrar('gemini', null, message.channel.id);
     } else {
-      await message.channel.send("Uff, me quedé pensando en otra cosa... ¿me lo repites? 😅");
+      await enviarRespuestaFallback(message);
     }
   } catch (error) {
     console.error('[MessageCreate] Error:', error.message);
-    await message.channel.send("Uff, me dio un calambre cerebral. ¡Intenta hablarme de nuevo! 🧠⚡");
+    await enviarRespuestaFallback(message);
   }
 }
