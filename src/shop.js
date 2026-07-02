@@ -1,4 +1,4 @@
-﻿// src/shop.js
+// src/shop.js
 // Sistema de tienda — Lush Family
 // Los miembros gastan sus monedas aquí
 

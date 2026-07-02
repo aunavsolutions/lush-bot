@@ -1,4 +1,4 @@
-﻿// src/announcements.js
+// src/announcements.js
 // Embeds de anuncios para canales del server — Lush Family
 
 import { EmbedBuilder } from 'discord.js';

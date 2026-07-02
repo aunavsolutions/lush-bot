@@ -1,4 +1,4 @@
-﻿# Lush Bot 🐱🐟
+# Lush Bot 🐱🐟
 
 > *Bot oficial de la familia Lush — Audition Latino*
 

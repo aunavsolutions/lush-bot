@@ -1,4 +1,4 @@
-﻿// src/commands/index.js
+// src/commands/index.js
 // Comandos slash del bot — Lush Family
 
 import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';

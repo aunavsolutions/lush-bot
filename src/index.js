@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import http from 'http';
 import { createRequire } from 'module';
 import { execSync } from 'child_process';

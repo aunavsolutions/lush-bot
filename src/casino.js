@@ -1,4 +1,4 @@
-﻿// src/casino.js
+// src/casino.js
 // Mini-juegos de casino — Lush Family
 // Todos usan monedas de la economía del bot
 

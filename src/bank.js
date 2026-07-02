@@ -1,4 +1,4 @@
-﻿// src/bank.js
+// src/bank.js
 // Sistema bancario — Lush Family
 // Billetera (vulnerable) vs Banco (seguro con interés)
 

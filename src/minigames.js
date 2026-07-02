@@ -1,4 +1,4 @@
-﻿// src/minigames.js
+// src/minigames.js
 // Mini-juegos divertidos — Lush Family
 
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
