@@ -32,7 +32,7 @@ const ANUNCIOS = {
     })
     .addFields({
       name: '\u200b',
-      value: '**Escribe `/guia` para ver todos los comandos del bot.**\n💜 *— Richelieu & æther*',
+      value: '**Escribe `/guia` para ver todos los comandos del bot.**\n💜 *— Rêviere y Nôcturne*',
       inline: false,
     })
     .setFooter({ text: 'Lush Family' })
