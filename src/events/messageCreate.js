@@ -4,7 +4,7 @@
 import { db_frases, db_lore, db_triggers, db_historial, db_config } from '../memory/database.js';
 import { responderMensaje, debeResponder } from '../memory/brain.js';
 import { agregarXP, embedNivelUp } from '../levels.js';
-import { checkRoleplay } from '../roleplay.js';
+import { checkRoleplay, checkNaturalRoleplay } from '../roleplay.js';
 
 // Canales que alimentan la memoria del bot
 const CANALES_MEMORIA = {
@@ -90,8 +90,8 @@ export default async function onMessageCreate(message) {
     db_economia.agregarMonedas(message.author.id, monedas);
   }
   
-  if (await checkRoleplay(message)) {
-    // Si era un comando de rol (*abrazo*), ya envió el gif, detenemos aquí.
+  if (await checkRoleplay(message) || await checkNaturalRoleplay(message)) {
+    // Si era un comando de rol (*abrazo* o texto plano), ya envió el gif, detenemos aquí.
     return;
   }
 

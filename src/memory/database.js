@@ -94,6 +94,14 @@ db.exec(`
     user_id TEXT PRIMARY KEY,
     nombre TEXT NOT NULL
   );
+
+  -- Matrimonios
+  CREATE TABLE IF NOT EXISTS matrimonios (
+    user_id_1 TEXT NOT NULL,
+    user_id_2 TEXT NOT NULL,
+    fecha INTEGER DEFAULT (unixepoch()),
+    PRIMARY KEY (user_id_1, user_id_2)
+  );
 `);
 
 // Migración segura
@@ -323,6 +331,49 @@ export const db_nombres = {
   obtener(user_id) {
     const row = db.prepare(`SELECT nombre FROM nombres WHERE user_id = ?`).get(user_id);
     return row ? row.nombre : null;
+  }
+};
+
+// ─── MATRIMONIOS ───────────────────────────────────────────────────────────
+
+export const db_matrimonios = {
+  proponer(user_id_1, user_id_2) {
+    // Ordenar los IDs alfabéticamente para que (A, B) y (B, A) sean la misma pareja
+    const [u1, u2] = [user_id_1, user_id_2].sort();
+    
+    // Verificar si alguno ya está casado
+    if (this.obtenerPareja(u1) || this.obtenerPareja(u2)) {
+      return false;
+    }
+    
+    db.prepare(`
+      INSERT INTO matrimonios (user_id_1, user_id_2) VALUES (?, ?)
+    `).run(u1, u2);
+    return true;
+  },
+
+  obtenerPareja(user_id) {
+    const row = db.prepare(`
+      SELECT user_id_1, user_id_2, fecha FROM matrimonios 
+      WHERE user_id_1 = ? OR user_id_2 = ?
+    `).get(user_id, user_id);
+    
+    if (!row) return null;
+    return {
+      pareja_id: row.user_id_1 === user_id ? row.user_id_2 : row.user_id_1,
+      fecha: row.fecha
+    };
+  },
+
+  divorciar(user_id) {
+    const pareja = this.obtenerPareja(user_id);
+    if (!pareja) return false;
+    
+    db.prepare(`
+      DELETE FROM matrimonios 
+      WHERE (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)
+    `).run(user_id, pareja.pareja_id, pareja.pareja_id, user_id);
+    return true;
   }
 };
 

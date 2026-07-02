@@ -168,6 +168,55 @@ client.on('interactionCreate', async (interaction) => {
     return handleDueloButton(interaction);
   }
 
+  // Matrimonios (aceptar/rechazar)
+  if (interaction.isButton() && interaction.customId.startsWith('boda_')) {
+    const parts = interaction.customId.split('_');
+    const action = parts[1];
+    const targetId = parts[2];
+    const authorId = parts[3];
+
+    if (interaction.user.id !== targetId) {
+      return interaction.reply({ content: '❌ No puedes responder a esta propuesta, no es para ti.', ephemeral: true });
+    }
+
+    if (action === 'rechazar') {
+      return interaction.update({
+        content: `💔 **<@${targetId}>** ha rechazado la propuesta de matrimonio de **<@${authorId}>**. F en el chat.`,
+        components: []
+      });
+    }
+
+    if (action === 'aceptar') {
+      const { db_matrimonios } = await import('./memory/database.js');
+      const exito = db_matrimonios.proponer(authorId, targetId);
+
+      if (!exito) {
+        return interaction.update({
+          content: '❌ No se pudo completar el matrimonio. Es posible que uno de los dos ya se haya casado.',
+          components: []
+        });
+      }
+
+      const channelAnuncios = interaction.guild.channels.cache.find(ch => ch.name.toLowerCase().includes('anuncio'));
+      if (channelAnuncios) {
+        const { EmbedBuilder } = await import('discord.js');
+        const embedBoda = new EmbedBuilder()
+          .setTitle('🔔 ¡Boda Oficial en Lush Family! 💍')
+          .setDescription(`🎉 Queremos anunciar con alegría que **<@${authorId}>** y **<@${targetId}>** se han jurado amor eterno hoy.\n\n¡Felicidades a los recién casados! Que el amor (y las monedas) abunde en su relación. 💖`)
+          .setColor('#F1948A')
+          .setImage('https://media.tenor.com/xswPq6KzM1sAAAAC/anime-kiss.gif')
+          .setTimestamp();
+        
+        await channelAnuncios.send({ embeds: [embedBoda] }).catch(() => null);
+      }
+
+      return interaction.update({
+        content: `🎉 ¡VIVAN LOS NOVIOS! 💍 **<@${authorId}>** y **<@${targetId}>** se han casado oficialmente. Que tengan una hermosa vida en Lush. 💖`,
+        components: []
+      });
+    }
+  }
+
   // Modal: /vincular (nick + presentación)
   if (interaction.isModalSubmit() && interaction.customId === 'modal_vincular') {
     await interaction.deferReply({ ephemeral: true });

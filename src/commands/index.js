@@ -13,6 +13,7 @@ import { getAnuncio } from '../announcements.js';
 import { handleSaldo, handleDepositar, handleRetirar, handleTransferir, handleRobar } from '../bank.js';
 import { calcularNivel, obtenerTitulo, xpParaNivel, embedPerfil } from '../levels.js';
 import db from '../memory/database.js';
+import { handleRoleplayCommand, handleCasarse, handleDivorciarse, handlePareja } from '../roleplay.js';
 
 // ─── DEFINICIÓN DE COMANDOS ────────────────────────────────────────────────
 
@@ -291,6 +292,72 @@ export const commands = [
     .setName('robar')
     .setDescription('🦹 Intenta robar de la billetera de alguien')
     .addUserOption(opt => opt.setName('usuario').setDescription('A quién robar').setRequired(true))
+    .toJSON(),
+
+  // ROLEPLAY & MARRIAGE
+  new SlashCommandBuilder()
+    .setName('casarse')
+    .setDescription('💍 Propón matrimonio a un miembro de la familia')
+    .addUserOption(opt => opt.setName('usuario').setDescription('El amor de tu vida').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('divorciarse')
+    .setDescription('💔 Rompe tu relación matrimonial')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('pareja')
+    .setDescription('💖 Consulta tu pareja o la de alguien más')
+    .addUserOption(opt => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(false))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('abrazar')
+    .setDescription('🤗 Dale un fuerte abrazo a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién abrazar').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('besar')
+    .setDescription('💋 Dale un tierno beso a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién besar').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('patear')
+    .setDescription('👣 Patea a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién patear').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('bofetada')
+    .setDescription('🖐️ Dale una cachetada a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién cachetear').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('acariciar')
+    .setDescription('😊 Acaricia la cabeza de alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién mimar').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('morder')
+    .setDescription('🦷 Dale una mordida a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién morder').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('matar')
+    .setDescription('💀 Elimina a alguien en broma')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién eliminar').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('bailar')
+    .setDescription('💃 ¡A bailar!')
+    .addUserOption(opt => opt.setName('usuario').setDescription('Con quién bailar (opcional)').setRequired(false))
     .toJSON(),
 ];
 
@@ -1043,6 +1110,20 @@ export async function handleCommand(interaction) {
     case 'retirar':     return handleRetirar(interaction);
     case 'transferir':  return handleTransferir(interaction);
     case 'robar':       return handleRobar(interaction);
+
+    // Matrimonios y Roleplay
+    case 'casarse':     return handleCasarse(interaction);
+    case 'divorciarse': return handleDivorciarse(interaction);
+    case 'pareja':      return handlePareja(interaction);
+    case 'abrazar':
+    case 'besar':
+    case 'patear':
+    case 'bofetada':
+    case 'acariciar':
+    case 'morder':
+    case 'matar':
+    case 'bailar':
+      return handleRoleplayCommand(interaction);
 
     default:
       return interaction.reply({ content: 'Comando no reconocido.', ephemeral: true });
