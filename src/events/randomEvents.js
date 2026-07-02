@@ -6,8 +6,8 @@ import { db_frases, db_lore, db_historial } from '../memory/database.js';
 import { generarEventoRandom } from '../memory/brain.js';
 
 // Intervalos de eventos (en ms)
-const INTERVALO_MIN = 2 * 60 * 1000;  // 2 minutos
-const INTERVALO_MAX = 8 * 60 * 1000;  // 8 minutos
+const INTERVALO_MIN = 60 * 60 * 1000;      // 1 hora
+const INTERVALO_MAX = 2 * 60 * 60 * 1000;  // 2 horas
 const HORA_INICIO = 10; // 10am — no molestar de madrugada
 const HORA_FIN = 23;    // 11pm
 
