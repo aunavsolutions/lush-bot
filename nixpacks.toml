@@ -1,6 +1,6 @@
 # nixpacks.toml — Railway build config
 [phases.setup]
-nixPkgs = ["ffmpeg"]
+nixPkgs = ["ffmpeg", "python3", "gcc", "gnumake"]
 
 [phases.install]
 cmds = ["npm ci"]
