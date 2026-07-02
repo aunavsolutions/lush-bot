@@ -200,11 +200,20 @@ client.on('interactionCreate', async (interaction) => {
       const channelAnuncios = interaction.guild.channels.cache.find(ch => ch.name.toLowerCase().includes('anuncio'));
       if (channelAnuncios) {
         const { EmbedBuilder } = await import('discord.js');
+        const authorUser = await interaction.client.users.fetch(authorId).catch(() => null);
+        const targetUser = await interaction.client.users.fetch(targetId).catch(() => null);
+
         const embedBoda = new EmbedBuilder()
-          .setTitle('🔔 ¡Boda Oficial en Lush Family! 💍')
-          .setDescription(`🎉 Queremos anunciar con alegría que **<@${authorId}>** y **<@${targetId}>** se han jurado amor eterno hoy.\n\n¡Felicidades a los recién casados! Que el amor (y las monedas) abunde en su relación. 💖`)
+          .setTitle('🔔 ¡Nueva Boda en la Familia Lush! 💍')
+          .setDescription(`🎉 Queremos anunciar con inmensa alegría que **<@${authorId}>** y **<@${targetId}>** se han jurado amor eterno hoy.\n\n¡Felicidades a la hermosa pareja! Que su amor dure para siempre. 💖`)
           .setColor('#F1948A')
+          .setAuthor({ 
+            name: authorUser ? authorUser.username : 'Lush', 
+            iconURL: authorUser ? authorUser.displayAvatarURL({ dynamic: true }) : null 
+          })
+          .setThumbnail(targetUser ? targetUser.displayAvatarURL({ dynamic: true }) : null)
           .setImage('https://media.tenor.com/xswPq6KzM1sAAAAC/anime-kiss.gif')
+          .setFooter({ text: 'Lush Family • ¡Que vivan los novios! 🎉' })
           .setTimestamp();
         
         await channelAnuncios.send({ embeds: [embedBoda] }).catch(() => null);

@@ -278,17 +278,28 @@ export async function handlePareja(interaction) {
   if (!pareja) {
     return interaction.reply({
       content: target.id === interaction.user.id 
-        ? 'ℹ️ Actualmente estás soltero/a. ¡El amor llegará pronto!' 
+        ? 'ℹ️ Actualmente estás soltero/a. ¡El amor llegará pronto! 💕' 
         : `ℹ️ **${target.username}** está soltero/a.`
     });
   }
 
-  const fechaFormat = `<t:${pareja.fecha}:D>`;
-  const embed = new EmbedBuilder()
-    .setTitle('💖 Estado Civil: Casados')
-    .setDescription(`💘 **${target}** está casado/a con <@${pareja.pareja_id}>\n📅 Casados desde el: ${fechaFormat}`)
-    .setColor('#F1948A')
-    .setImage('https://media.tenor.com/xswPq6KzM1sAAAAC/anime-kiss.gif');
+  await interaction.deferReply();
 
-  return interaction.reply({ embeds: [embed] });
+  const spouseUser = await interaction.client.users.fetch(pareja.pareja_id).catch(() => null);
+  const fechaFormat = `<t:${pareja.fecha}:D>`;
+
+  const embed = new EmbedBuilder()
+    .setTitle('💍 Registro Matrimonial de la Familia Lush')
+    .setDescription(`💘 **${target}** está felizmente casado/a con **${spouseUser || `<@${pareja.pareja_id}>`}**\n\n📅 **Fecha de Unión:** ${fechaFormat}`)
+    .setColor('#F1948A')
+    .setAuthor({ 
+      name: `Matrimonio de ${target.username}`, 
+      iconURL: target.displayAvatarURL({ dynamic: true, size: 128 }) 
+    })
+    .setThumbnail(spouseUser ? spouseUser.displayAvatarURL({ dynamic: true, size: 256 }) : null)
+    .setImage('https://media.tenor.com/xswPq6KzM1sAAAAC/anime-kiss.gif')
+    .setFooter({ text: 'Lush Family • Amor eterno 💖' })
+    .setTimestamp();
+
+  return interaction.editReply({ embeds: [embed] });
 }
