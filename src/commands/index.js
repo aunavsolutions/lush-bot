@@ -361,6 +361,35 @@ export const commands = [
     .toJSON(),
 ];
 
+function normalizeText(text) {
+  let res = '';
+  for (const char of text) {
+    const cp = char.codePointAt(0);
+    if (cp >= 0x1D400 && cp <= 0x1D419) res += String.fromCodePoint(cp - 0x1D400 + 65);
+    else if (cp >= 0x1D41A && cp <= 0x1D433) res += String.fromCodePoint(cp - 0x1D41A + 97);
+    else if (cp >= 0x1D434 && cp <= 0x1D44D) res += String.fromCodePoint(cp - 0x1D434 + 65);
+    else if (cp >= 0x1D44E && cp <= 0x1D467) res += String.fromCodePoint(cp - 0x1D44E + 97);
+    else if (cp >= 0x1D468 && cp <= 0x1D481) res += String.fromCodePoint(cp - 0x1D468 + 65);
+    else if (cp >= 0x1D482 && cp <= 0x1D49B) res += String.fromCodePoint(cp - 0x1D482 + 97);
+    else if (cp >= 0x1D5A0 && cp <= 0x1D5B9) res += String.fromCodePoint(cp - 0x1D5A0 + 65);
+    else if (cp >= 0x1D5BA && cp <= 0x1D5D3) res += String.fromCodePoint(cp - 0x1D5BA + 97);
+    else if (cp >= 0x1D5D4 && cp <= 0x1D5ED) res += String.fromCodePoint(cp - 0x1D5D4 + 65);
+    else if (cp >= 0x1D5EE && cp <= 0x1D607) res += String.fromCodePoint(cp - 0x1D5EE + 97);
+    else if (cp >= 0x1D670 && cp <= 0x1D689) res += String.fromCodePoint(cp - 0x1D670 + 65);
+    else if (cp >= 0x1D68A && cp <= 0x1D6A3) res += String.fromCodePoint(cp - 0x1D68A + 97);
+    else res += char;
+  }
+  return res.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function esAdmin(member) {
+  if (member.permissions.has('Administrator')) return true;
+  return member.roles.cache.some(r => {
+    const normalized = normalizeText(r.name);
+    return normalized.includes('founder') || normalized.includes('admin');
+  });
+}
+
 // ─── HANDLER ────────────────────────────────────────────────────────────────
 
 export async function handleCommand(interaction) {
@@ -652,9 +681,8 @@ export async function handleCommand(interaction) {
     }
 
     case 'tienda-add': {
-      // Solo admins
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '❌ Solo los administradores pueden añadir items.', ephemeral: true });
+      if (!esAdmin(interaction.member)) {
+        return interaction.reply({ content: '❌ Solo administradores o roles **Founder** y **Admin** pueden añadir items.', ephemeral: true });
       }
       const titulo = interaction.options.getString('titulo');
       const precio = interaction.options.getInteger('precio');
@@ -829,8 +857,8 @@ export async function handleCommand(interaction) {
     // ═══════════════════════════════════════════════════════════════
 
     case 'forzar-onboarding': {
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '❌ Solo administradores.', ephemeral: true });
+      if (!esAdmin(interaction.member)) {
+        return interaction.reply({ content: '❌ Solo administradores o roles **Founder** y **Admin** pueden ejecutar este comando.', ephemeral: true });
       }
       await interaction.deferReply({ ephemeral: true });
 
@@ -908,13 +936,8 @@ export async function handleCommand(interaction) {
     }
 
     case 'setup-canales': {
-      // Restringir estrictamente a los roles "Founder" y "Admin"
-      const isAuthorized = interaction.member.roles.cache.some(r => 
-        r.name.toLowerCase().includes('founder') || 
-        r.name.toLowerCase().includes('admin')
-      );
-
-      if (!isAuthorized) {
+      // Restringir a los roles "Founder" y "Admin" (o administradores)
+      if (!esAdmin(interaction.member)) {
         return interaction.reply({ content: '❌ Solo los roles **Founder** o **Admin** pueden ejecutar este comando.', ephemeral: true });
       }
       
@@ -999,8 +1022,8 @@ export async function handleCommand(interaction) {
     }
 
     case 'setup-mensajes': {
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '❌ Solo administradores.', ephemeral: true });
+      if (!esAdmin(interaction.member)) {
+        return interaction.reply({ content: '❌ Solo administradores o roles **Founder** y **Admin** pueden ejecutar este comando.', ephemeral: true });
       }
       await interaction.deferReply({ ephemeral: true });
 
@@ -1050,8 +1073,8 @@ export async function handleCommand(interaction) {
     }
 
     case 'setup-verificacion': {
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '❌ Solo administradores.', ephemeral: true });
+      if (!esAdmin(interaction.member)) {
+        return interaction.reply({ content: '❌ Solo administradores o roles **Founder** y **Admin** pueden ejecutar este comando.', ephemeral: true });
       }
       await interaction.deferReply({ ephemeral: true });
       
@@ -1084,8 +1107,8 @@ export async function handleCommand(interaction) {
     }
 
     case 'anuncio': {
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '❌ Solo administradores.', ephemeral: true });
+      if (!esAdmin(interaction.member)) {
+        return interaction.reply({ content: '❌ Solo administradores o roles **Founder** y **Admin** pueden ejecutar este comando.', ephemeral: true });
       }
       const tipo = interaction.options.getString('tipo');
       const canalObjetivo = interaction.options.getChannel('canal') || interaction.channel;
