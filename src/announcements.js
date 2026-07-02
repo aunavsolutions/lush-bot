@@ -5,11 +5,11 @@ import { EmbedBuilder } from 'discord.js';
 
 const ANUNCIOS = {
   principal: () => new EmbedBuilder()
-    .setTitle('🐟 Bienvenidos a Lush Family 🐟')
-    .setColor('#FF6B35')
+    .setTitle('✨ Bienvenidos a Lush Family')
+    .setColor('#A855F7')
     .setDescription(
-      '¡La familia más unida de **Audition Latino**! 🎮💃\n\n' +
-      'Este es tu hogar para compartir, jugar y crecer juntos.\n' +
+      '¡Bienvenid@ a la comunidad! 🎉\n\n' +
+      'Este es tu espacio para conocer gente, divertirte y formar parte de algo especial.\n' +
       'Aquí encontrarás de todo:'
     )
     .addFields(
@@ -18,7 +18,7 @@ const ANUNCIOS = {
       { name: '💼 Economía', value: 'Mina, pesca, farmeo y trabajos', inline: true },
       { name: '🛒 Tienda', value: 'Roles de color, títulos, XP boosts', inline: true },
       { name: '📊 Niveles', value: 'Sube de rango chateando', inline: true },
-      { name: '🧠 Lush Bot', value: 'IA, memoria, recuerdos', inline: true },
+      { name: '🧠 Lush Bot', value: 'IA, memoria, respuestas', inline: true },
     )
     .addFields({
       name: '📌 Canales importantes',
@@ -32,10 +32,30 @@ const ANUNCIOS = {
     })
     .addFields({
       name: '\u200b',
-      value: '**Escribe `/guia` para ver todos los comandos del bot.**\n🐱🐟 *— Richelieu & æther*',
+      value: '**Escribe `/guia` para ver todos los comandos del bot.**\n💜 *— Richelieu & æther*',
       inline: false,
     })
-    .setFooter({ text: 'Lush Family • Audition Latino' })
+    .setFooter({ text: 'Lush Family' })
+    .setTimestamp(),
+
+  anuncios: () => new EmbedBuilder()
+    .setTitle('📢 Canal de Anuncios')
+    .setColor('#F59E0B')
+    .setDescription(
+      'Aquí publicamos todas las novedades importantes de la comunidad. 📌\n\n' +
+      '**¿Qué encontrarás aquí?**'
+    )
+    .addFields(
+      { name: '🎉 Eventos', value: 'Concursos, torneos y actividades especiales', inline: true },
+      { name: '🔧 Actualizaciones', value: 'Cambios en el servidor y el bot', inline: true },
+      { name: '📣 Comunicados', value: 'Avisos importantes del staff', inline: true },
+    )
+    .addFields({
+      name: '🔔 Activa las notificaciones',
+      value: '> Dale clic al 🔔 del canal para no perderte ningún anuncio.',
+      inline: false,
+    })
+    .setFooter({ text: 'Lush Family • Solo el staff puede publicar aquí' })
     .setTimestamp(),
 
   roles: () => new EmbedBuilder()
@@ -50,11 +70,6 @@ const ANUNCIOS = {
       '> Los roles de color se compran en `/tienda`.'
     )
     .addFields(
-      {
-        name: '🎮 ¿Qué juegas?',
-        value: '🕹️ Audition Latino\n🎯 Valorant\n🏗️ Roblox\n🎮 Otros',
-        inline: true,
-      },
       {
         name: '🌍 Región',
         value: '🇲🇽 México\n🇨🇴 Colombia\n🇦🇷 Argentina\n🇨🇱 Chile\n🌎 Otro',
@@ -77,11 +92,11 @@ const ANUNCIOS = {
     .setTitle('😂 Canal de Memes')
     .setColor('#FBBF24')
     .setDescription(
-      'Comparte los mejores memes con la familia. 🐟\n\n' +
+      'Comparte los mejores memes con la familia. 😹\n\n' +
       '**Reglas del canal:**'
     )
     .addFields(
-      { name: '✅ Permitido', value: '• Memes de Audition, gaming, anime\n• Memes en español/inglés\n• Videos cortos graciosos\n• Stickers y GIFs', inline: true },
+      { name: '✅ Permitido', value: '• Memes de gaming, anime, internet\n• Memes en español/inglés\n• Videos cortos graciosos\n• Stickers y GIFs', inline: true },
       { name: '❌ Prohibido', value: '• NSFW o gore\n• Memes ofensivos/racistas\n• Spam del mismo meme\n• Publicidad disfrazada', inline: true },
     )
     .addFields({
@@ -95,16 +110,16 @@ const ANUNCIOS = {
     .setTitle('📸 Capturas & Momentos')
     .setColor('#3B82F6')
     .setDescription(
-      'Comparte tus mejores momentos de juego. 🎮✨\n\n' +
+      'Comparte tus mejores momentos. 📸✨\n\n' +
       '**¿Qué publicar aquí?**'
     )
     .addFields(
-      { name: '🎮 Gaming', value: '• Outfits de Audition\n• Scores épicos\n• Jugadas clutch\n• Logros desbloqueados', inline: true },
-      { name: '🐟 Familia', value: '• Momentos con la fam\n• Screenshots del server\n• Chats graciosos\n• Antes y después', inline: true },
+      { name: '🎮 Gaming', value: '• Logros desbloqueados\n• Jugadas épicas\n• Momentos graciosos', inline: true },
+      { name: '🤝 Familia', value: '• Momentos con la fam\n• Screenshots del server\n• Chats graciosos', inline: true },
     )
     .addFields({
       name: '📏 Formato recomendado',
-      value: '> Sube la imagen directamente (no links externos)\n> Agrega contexto a tu captura\n> Usa `/lore` para guardar momentos épicos en la memoria del bot',
+      value: '> Sube la imagen directamente (no links externos)\n> Agrega contexto a tu captura',
       inline: false,
     })
     .setFooter({ text: 'Lush Family • ¡Comparte tu historia! 📸' }),
@@ -114,7 +129,7 @@ const ANUNCIOS = {
     .setColor('#6B7280')
     .setDescription(
       'El lugar para hablar de lo que sea. 🗣️\n' +
-      'No tiene que ser sobre gaming — ¡sé tú mismo!\n\n' +
+      '¡Sé tú mismo!\n\n' +
       '**Temas populares:**'
     )
     .addFields(
@@ -136,16 +151,16 @@ const ANUNCIOS = {
     .setTitle('🎮 Canal de Minijuegos')
     .setColor('#22C55E')
     .setDescription(
-      '¡Diviértete con los juegos del bot! 🐟\n' +
+      '¡Diviértete con los juegos del bot! 🎮\n' +
       'Usa estos comandos aquí para jugar con la familia:\n'
     )
     .addFields(
       { name: '✊ /ppt', value: 'Piedra, Papel o Tijeras\nvs el bot', inline: true },
       { name: '🎱 /8ball <pregunta>', value: 'La bola mágica\nte responde', inline: true },
-      { name: '🔢 /adivina <1-10>', value: 'Adivina el número\nsecreto', inline: true },
+      { name: '🔢 /adivina', value: 'Adivina el número\nsecreto', inline: true },
       { name: '💕 /ship @a @b', value: 'Compatibilidad %\nentre dos personas', inline: true },
       { name: '⚔️ /duelo @user', value: 'Reta a alguien a\nun duelo épico', inline: true },
-      { name: '🎯 /duo', value: 'Simula una partida\nde Audition', inline: true },
+      { name: '😂 /ship', value: 'Descubre quiénes\nson más compatibles', inline: true },
     )
     .addFields({
       name: '🎰 ¿Quieres apostar?',
@@ -176,7 +191,7 @@ const ANUNCIOS = {
       },
       {
         name: '💰 /trabajar',
-        value: '> Gana entre **50-200 monedas** al azar\n> ⏳ Cooldown: 30 min',
+        value: '> Gana entre **20-70 monedas** al azar\n> ⏳ Cooldown: 30 min',
         inline: false,
       },
       {
@@ -206,7 +221,7 @@ const ANUNCIOS = {
       { name: '📥 /depositar <cantidad>', value: 'Guarda monedas en el banco\n🔒 Seguras contra `/robar`', inline: true },
       { name: '📤 /retirar <cantidad>', value: 'Saca monedas del banco\na tu billetera', inline: true },
       { name: '💰 /saldo', value: 'Ve tu billetera vs banco\ncon barra visual', inline: true },
-      { name: '💸 /transferir @user', value: 'Envía monedas a otro\nmiembro de la familia', inline: true },
+      { name: '💸 /transferir @user', value: 'Envía monedas a otro\nmiembro', inline: true },
       { name: '🦹 /robar @user', value: 'Intenta robar de la\nbilletera de alguien', inline: true },
       { name: '📈 Interés Diario', value: '2% sobre tu depósito\n(máx. 5,000/día)', inline: true },
     )
@@ -230,7 +245,7 @@ const ANUNCIOS = {
     .setTitle('🎰 Casino Lush — ¡Apuesta y Gana!')
     .setColor('#EF4444')
     .setDescription(
-      'Bienvenido al casino de la familia. 🐟\n' +
+      'Bienvenido al casino de la familia. 🎲\n' +
       'Aquí puedes apostar tus monedas en 5 juegos diferentes.\n' +
       '**Apuesta mínima: 10💰 • Máxima: 50,000💰**'
     )
@@ -240,7 +255,7 @@ const ANUNCIOS = {
         value:
           '> Tira la tragamonedas con 7 símbolos\n' +
           '> 🍒 x1 • 🍋 x1.5 • 🍊 x2 • 🍇 x3\n' +
-          '> 🐟 x5 • 💎 x7 • 7️⃣ **x10 JACKPOT**\n' +
+          '> ⭐ x5 • 💎 x7 • 7️⃣ **x10 JACKPOT**\n' +
           '> Par = recuperas 50%',
         inline: false,
       },
@@ -289,33 +304,35 @@ const ANUNCIOS = {
   reglas: () => new EmbedBuilder()
     .setTitle('📜 Reglas del Servidor')
     .setColor('#E11D48')
-    .setDescription('Para mantener la armonía en la familia Lush, respeta las siguientes reglas. El incumplimiento resultará en mute, warn o ban.')
+    .setDescription('Para mantener la armonía en la comunidad Lush, respeta las siguientes reglas. El incumplimiento resultará en mute, warn o ban.')
     .addFields(
       { name: '1️⃣ Respeto ante todo', value: 'Trata a todos con respeto. Cero toxicidad, insultos o discriminación.' },
       { name: '2️⃣ Sin spam ni flood', value: 'No envíes mensajes repetitivos, exceso de emojis o publicidad.' },
       { name: '3️⃣ Contenido apropiado', value: 'Prohibido contenido NSFW, gore o excesivamente ofensivo.' },
-      { name: '4️⃣ Usa los canales correctos', value: 'Mantén el orden: memes en su canal, música en música, etc.' },
-      { name: '5️⃣ Economía justa', value: 'No abuses de bugs ni uses multicuentas para farmear monedas.' }
+      { name: '4️⃣ Usa los canales correctos', value: 'Mantén el orden: memes en su canal, temas serios en general, etc.' },
+      { name: '5️⃣ Economía justa', value: 'No abuses de bugs ni uses multicuentas para farmear monedas.' },
+      { name: '6️⃣ Sin drama innecesario', value: 'Los conflictos se resuelven en privado o con el staff. El drama público no está permitido.' }
     )
     .setFooter({ text: 'Lush Family • El desconocimiento de las reglas no exime su cumplimiento' }),
 
   guias: () => new EmbedBuilder()
-    .setTitle('📖 Guías y Tutoriales')
+    .setTitle('📖 Guías y Recursos')
     .setColor('#3B82F6')
-    .setDescription('Aquí encontrarás toda la información útil sobre el servidor y el juego.')
+    .setDescription('Aquí encontrarás toda la información útil sobre el servidor y sus funciones.')
     .addFields(
       { name: '🤖 Comandos del bot', value: 'Escribe `/guia` en cualquier canal para ver todo lo que puede hacer el bot.' },
-      { name: '💃 Audition Latino', value: 'Pronto publicaremos guías de modos de juego, misiones y parches.' }
+      { name: '💰 Economía', value: 'Ve a `/guia` para aprender a ganar monedas, usar la tienda y el casino.' },
+      { name: '🏆 Niveles', value: 'Chatea para ganar XP y subir de rango. Usa `/perfil` para ver tu progreso.' }
     ),
 
   redes: () => new EmbedBuilder()
     .setTitle('🌍 Nuestras Redes Sociales')
     .setColor('#0EA5E9')
-    .setDescription('¡Síguenos en nuestras redes para no perderte ningún evento o torneo de la familia!')
+    .setDescription('¡Síguenos en nuestras redes para no perderte ningún evento!')
     .addFields(
       { name: '📘 Facebook', value: '[Grupo Oficial](https://facebook.com)' },
       { name: '📸 Instagram', value: '[@LushFam](https://instagram.com)' },
-      { name: '📺 Twitch / YouTube', value: 'Directos de torneos y más.' }
+      { name: '📺 Twitch / YouTube', value: 'Directos y videos de la comunidad.' }
     ),
 
   presentacion: () => new EmbedBuilder()
@@ -324,7 +341,7 @@ const ANUNCIOS = {
     .setDescription('¡Queremos conocerte! Usa este formato para presentarte y que todos te demos la bienvenida:')
     .addFields({
       name: '📝 Formato de Presentación',
-      value: '```\n👤 Nombre / Apodo:\n🎂 Edad:\n🌎 País:\n🎮 Nick en Audition:\n🎵 Modo favorito:\n```'
+      value: '```\n👤 Nombre / Apodo:\n🎂 Edad:\n🌎 País:\n🎮 ¿A qué juegas?:\n🎵 ¿Qué escuchas?:\n```'
     }),
 
   confesiones: () => new EmbedBuilder()
@@ -354,7 +371,6 @@ const ANUNCIOS = {
       { name: '🔥 INICIO', value: '• **#bienvenidos:** Bienvenidas y registro (`/vincular`)\n• **#reglas:** Normas del servidor\n• **#autorol:** Elige tus roles y colores\n• **#anuncios:** Noticias y novedades\n• **#guias:** Información útil\n• **#presentacion:** Preséntate a la familia' },
       { name: '💬 CANALES DE TEXTO', value: '• **#general:** Chat principal\n• **#memes:** Comparte humor\n• **#confesiones:** Usa `/confesion` para publicar anónimamente' },
       { name: '🤖 BOT Y ENTRETENIMIENTO', value: '• **#banco:** Usa `/depositar`, `/robar`, `/saldo`\n• **#economia:** Trabaja, mina, pesca (`/trabajar`, `/minar`)\n• **#minijuegos:** Juega `/ppt`, `/duelo`, `/8ball`\n• **#casino:** Apuesta `/slots`, `/ruleta`' },
-      { name: '🎮 VIDEOJUEGOS', value: '• **#sala-gamer:** Chat sobre juegos\n• **#capturas / #grabaciones:** Comparte tus mejores jugadas' }
     )
     .setFooter({ text: 'Lush Family • ¡Explora y diviértete!' }),
 };
