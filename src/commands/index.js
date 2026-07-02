@@ -213,6 +213,11 @@ export const commands = [
 
   // ADMIN
   new SlashCommandBuilder()
+    .setName('setup-canales')
+    .setDescription('[ADMIN] Crea toda la estructura de categorías y canales del servidor')
+    .toJSON(),
+
+  new SlashCommandBuilder()
     .setName('setup-mensajes')
     .setDescription('[ADMIN] El bot enviará automáticamente los mensajes de información en cada canal')
     .toJSON(),
@@ -822,6 +827,91 @@ export async function handleCommand(interaction) {
       } catch (err) {
         console.error('[ForzarOnboarding] Error:', err);
         return interaction.editReply('❌ Error al procesar. Asegúrate de que el bot tenga permisos de Gestionar Roles.');
+      }
+    }
+
+    case 'setup-canales': {
+      // Restringir estrictamente a los roles "Founder" y "Admin"
+      const isAuthorized = interaction.member.roles.cache.some(r => 
+        r.name.toLowerCase().includes('founder') || 
+        r.name.toLowerCase().includes('admin')
+      );
+
+      if (!isAuthorized) {
+        return interaction.reply({ content: '❌ Solo los roles **Founder** o **Admin** pueden ejecutar este comando.', ephemeral: true });
+      }
+      
+      await interaction.deferReply({ ephemeral: true });
+      const guild = interaction.guild;
+      
+      try {
+        const structure = [
+          {
+            name: '📢 | INFORMACIÓN',
+            channels: [
+              { name: '👋-bienvenida', type: 0 },
+              { name: '👋-presentaciones', type: 0 },
+              { name: '📜-reglas', type: 0 },
+              { name: '📣-anuncios', type: 0 },
+              { name: '🎭-roles', type: 0 },
+              { name: '🎉-eventos', type: 0 }
+            ]
+          },
+          {
+            name: '💬 | COMUNIDAD',
+            channels: [
+              { name: '💭-general', type: 0 },
+              { name: '😂-memes', type: 0 },
+              { name: '🎵-música', type: 0 },
+              { name: '📷-clips-y-fotos', type: 0 },
+              { name: '🤫-confesiones', type: 0 }
+            ]
+          },
+          {
+            name: '🎶 | AUDITION',
+            channels: [
+              { name: 'audition-general', type: 0 },
+              { name: 'buscar-duo', type: 0 }
+            ]
+          },
+          {
+            name: '🕹️ | MULTIJUEGO',
+            channels: [
+              { name: '🕹️-minijuegos', type: 0 },
+              { name: '🎰-casino', type: 0 },
+              { name: '💰-economia', type: 0 },
+              { name: '🏦-banco', type: 0 }
+            ]
+          },
+          {
+            name: '🎙️ | VOZ',
+            channels: [
+              { name: 'General', type: 2 },
+              { name: 'Gaming', type: 2 },
+              { name: 'Música', type: 2 }
+            ]
+          }
+        ];
+
+        for (const cat of structure) {
+          const category = await guild.channels.create({
+            name: cat.name,
+            type: 4 // Tipo 4 = Categoría
+          });
+          
+          for (const ch of cat.channels) {
+            await guild.channels.create({
+              name: ch.name,
+              type: ch.type, // 0 = Texto, 2 = Voz
+              parent: category.id
+            });
+          }
+        }
+        
+        return interaction.editReply('✅ Toda la estructura de categorías y canales fue creada exitosamente.');
+      } catch (err) {
+        console.error(err);
+        return interaction.editReply('❌ Hubo un error al crear los canales. Asegúrate de que el bot tenga el permiso "Gestionar canales".');
       }
     }
 
