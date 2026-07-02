@@ -88,6 +88,12 @@ db.exec(`
     timestamp INTEGER,
     PRIMARY KEY (user_id, comando)
   );
+
+  -- Nombres preferidos
+  CREATE TABLE IF NOT EXISTS nombres (
+    user_id TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL
+  );
 `);
 
 // Migración segura
@@ -300,6 +306,23 @@ export const db_cooldowns = {
       VALUES (?, ?, ?) 
       ON CONFLICT(user_id, comando) DO UPDATE SET timestamp = ?
     `).run(user_id, comando, ahora, ahora);
+  }
+};
+
+// ─── NOMBRES PREFERIDOS ────────────────────────────────────────────────────
+
+export const db_nombres = {
+  guardar(user_id, nombre) {
+    db.prepare(`
+      INSERT INTO nombres (user_id, nombre) 
+      VALUES (?, ?) 
+      ON CONFLICT(user_id) DO UPDATE SET nombre = ?
+    `).run(user_id, nombre, nombre);
+  },
+
+  obtener(user_id) {
+    const row = db.prepare(`SELECT nombre FROM nombres WHERE user_id = ?`).get(user_id);
+    return row ? row.nombre : null;
   }
 };
 

@@ -1,7 +1,7 @@
 // src/commands/index.js
 // Comandos slash del bot — Lush Family
 
-import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { db_frases, db_lore, db_triggers, db_config, db_economia, db_cooldowns } from '../memory/database.js';
 import { responderMensaje, consultarGemini } from '../memory/brain.js';
 
@@ -356,8 +356,18 @@ export async function handleCommand(interaction) {
       );
       const sugerencia = canalSugerido ? `<#${canalSugerido.id}>` : `un canal con "${keywords[0]}" en su nombre`;
 
+      let components = [];
+      if (canalSugerido) {
+        const btn = new ButtonBuilder()
+          .setLabel('Ir al canal')
+          .setURL(`https://discord.com/channels/${interaction.guild.id}/${canalSugerido.id}`)
+          .setStyle(ButtonStyle.Link);
+        components = [new ActionRowBuilder().addComponents(btn)];
+      }
+
       return interaction.reply({
-        content: `❌ Este comando solo funciona en ${sugerencia}.`,
+        content: `❌ Este comando debe usarse en ${sugerencia}.`,
+        components: components.length > 0 ? components : undefined,
         ephemeral: true,
       });
     }
@@ -878,8 +888,14 @@ export async function handleCommand(interaction) {
             name: '🕹️ | MULTIJUEGO',
             channels: [
               { name: '🕹️-minijuegos', type: 0 },
-              { name: '🎰-casino', type: 0 },
-              { name: '💰-economia', type: 0 },
+              { name: '🎰-casino', type: 0 }
+            ]
+          },
+          {
+            name: '💰 | ECONOMÍA',
+            channels: [
+              { name: '💰-economía', type: 0 },
+              { name: '🛒-tienda', type: 0 },
               { name: '🏦-banco', type: 0 }
             ]
           },

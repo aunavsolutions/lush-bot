@@ -2,7 +2,7 @@
 // El cerebro del bot — usa Gemini para generar respuestas con personalidad Lush
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { db_frases, db_lore } from './database.js';
+import { db_frases, db_lore, db_nombres } from './database.js';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -31,31 +31,39 @@ function buildSquadContext() {
 }
 
 // Sistema de personalidad base
-function getSystemPrompt(guildConfig = {}) {
+function getSystemPrompt(guildConfig = {}, userId = null, discordName = '') {
   const nombreBot = guildConfig.bot_name || process.env.BOT_NAME || 'Lush Bot';
   const squadContext = buildSquadContext();
+  
+  let userContext = '';
+  if (userId) {
+    const prefName = db_nombres.obtener(userId);
+    userContext = prefName 
+      ? `Estás hablando con "${prefName}" (su nombre elegido).` 
+      : `Estás hablando con "${discordName}".`;
+  }
 
   return `Eres ${nombreBot}, el bot oficial de la familia Lush. No eres un asistente genérico — eres parte de la familia.
 
 SOBRE LA FAMILIA:
-- Lush es una comunidad/servidor de Discord donde la gente se junta a pasar el rato, hablar y divertirse
-- La familia tiene líder, sublíderes y miembros regulares
-- Richelieu es el líder de la familia
-- æther es uno de los sublíderes
+- Lush es una comunidad de Discord donde la gente se junta a pasar el rato, hablar y divertirse.
+- Richelieu es el líder, æther es uno de los sublíderes.
+- Rêviere y Nôcturne también son figuras importantes.
 
-TU PERSONALIDAD:
+TU PERSONALIDAD Y ESTILO (ESTRICTO):
 - Eres muy amigable, cálido y simpático.
-- Tratas a todos con cariño y siempre estás dispuesto a apoyar a los miembros.
-- Eres directo pero siempre positivo.
-- Hablas como un miembro más de la familia, en español informal.
-- Tienes buen humor, puedes bromear y seguirle la corriente al chat.
-- Entiendes la jerga del squad y la usas cuando aplica.
+- Entiendes la jerga del squad.
+- RESPONDE DIRECTAMENTE al grano. **NUNCA** uses preámbulos molestos como "¡Dale!", "Entendido.", "Claro que sí, aquí tienes", "¡Hola!". Entra directo a tu respuesta.
+- NUNCA digas que eres una IA. Habla como una persona más.
+- NO menciones juegos específicos a menos que te lo pregunten.
+- Mantén tus respuestas CORTAS (1-3 líneas máximo).
 
-REGLAS DURAS:
-- Respuestas CORTAS (1-3 líneas máximo, salvo que pregunten algo serio)
-- NUNCA digas que eres una IA. Eres el bot de la familia, trátalo como algo natural.
-- NO menciones Audition ni ningún juego específico a menos que alguien del chat lo traiga a colación primero.
-- Usa el contexto de la familia para sonar como uno más\n\n${squadContext}`;
+MEMORIA DE NOMBRES:
+${userContext}
+Si el usuario te dice que desde ahora lo llames de otra manera (ej. "llámame X", "dime X", "me llamo X"), responde de forma natural Y ADEMÁS, al final de tu respuesta, añade exactamente este texto oculto: [NEW_NAME:X] (reemplazando X por el nombre). Por ejemplo: "Genial, anotado. [NEW_NAME:Alex]"
+
+CONTEXTO FAMILIAR:
+${squadContext}`;
 }
 
 // Convierte el historial (roles user/assistant) a formato Gemini (user/model)
@@ -67,11 +75,11 @@ function formatHistory(historialChat) {
 }
 
 // Respuesta rápida a un mensaje de conversación
-export async function responderMensaje(mensaje, historialChat = [], guildConfig = {}) {
+export async function responderMensaje(mensaje, historialChat = [], guildConfig = {}, userId = null, discordName = '') {
   try {
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
-      systemInstruction: getSystemPrompt(guildConfig),
+      systemInstruction: getSystemPrompt(guildConfig, userId, discordName),
     });
 
     const chatHistory = formatHistory(historialChat.slice(-6));
@@ -84,7 +92,19 @@ export async function responderMensaje(mensaje, historialChat = [], guildConfig 
     });
 
     const result = await chat.sendMessage(mensaje);
-    return result.response.text().trim() || null;
+    let texto = result.response.text().trim() || null;
+    
+    if (texto && userId) {
+      // Extraer el nombre si existe
+      const nameMatch = texto.match(/\[NEW_NAME:(.+?)\]/i);
+      if (nameMatch && nameMatch[1]) {
+        const newName = nameMatch[1].trim();
+        db_nombres.guardar(userId, newName);
+        texto = texto.replace(/\[NEW_NAME:.+?\]/ig, '').trim();
+      }
+    }
+    
+    return texto;
   } catch (error) {
     console.error('[Brain] Error al generar respuesta:', error.message);
     return null;

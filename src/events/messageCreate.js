@@ -176,7 +176,7 @@ async function handleAIResponse(message, content, guildConfig) {
     // Delay humano (entre 1 y 3 segundos)
     await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
 
-    const respuesta = await responderMensaje(mensajeConAutor, history, guildConfig);
+    const respuesta = await responderMensaje(mensajeConAutor, history, guildConfig, message.author.id, message.author.username);
 
     if (respuesta && respuesta.length > 0) {
       await message.channel.send(respuesta);

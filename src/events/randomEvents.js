@@ -6,8 +6,8 @@ import { db_frases, db_lore, db_historial } from '../memory/database.js';
 import { generarEventoRandom } from '../memory/brain.js';
 
 // Intervalos de eventos (en ms)
-const INTERVALO_MIN = 5 * 60 * 1000;  // 5 minutos
-const INTERVALO_MAX = 20 * 60 * 1000; // 20 minutos
+const INTERVALO_MIN = 2 * 60 * 1000;  // 2 minutos
+const INTERVALO_MAX = 8 * 60 * 1000;  // 8 minutos
 const HORA_INICIO = 10; // 10am — no molestar de madrugada
 const HORA_FIN = 23;    // 11pm
 
@@ -127,6 +127,30 @@ const EVENTOS_TEMATICOS = [
         `\u00bfQui\u00e9n creen que es? \ud83d\udc40`
       )
       .setColor('#9B59B6');
+  },
+
+  // Datos curiosos (Trivia)
+  () => {
+    const curiosidades = [
+      'El primer nombre de Pac-Man iba a ser "Puck-Man", pero lo cambiaron por miedo a que vandalizaran las m\u00e1quinas cambiando la P por una F.',
+      'El coraz\u00f3n de un camar\u00f3n est\u00e1 en su cabeza.',
+      'Hay m\u00e1s posibles iteraciones de una partida de ajedrez que \u00e1tomos en el universo observable.',
+      'La persona promedio pasar\u00e1 seis meses de su vida esperando en sem\u00e1foros en rojo.',
+      'Las vacas tienen mejores amigas y se estresan cuando las separan.',
+      'El agujero de los bol\u00edgrafos Bic est\u00e1 dise\u00f1ado para evitar que te ahogues si te lo tragas accidentalmente.',
+      'Nintendo fue fundada en 1889. Empezaron vendiendo cartas de papel tradicionales japonesas.',
+      'Si gritas durante 8 a\u00f1os, 7 meses y 6 d\u00edas, habr\u00e1s producido suficiente energ\u00eda sonora para calentar una taza de caf\u00e9.',
+    ];
+    const trivia = curiosidades[Math.floor(Math.random() * curiosidades.length)];
+
+    return new EmbedBuilder()
+      .setTitle('\ud83e\udde0 \u00bfSab\u00edas que...?')
+      .setDescription(
+        `**Dato curioso random:**\n\n` +
+        `> ${trivia}\n\n` +
+        `\ud83e\udd2f *Cada d\u00eda se aprende algo nuevo.*`
+      )
+      .setColor('#10B981');
   },
 ];
 
