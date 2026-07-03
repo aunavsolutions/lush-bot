@@ -1,7 +1,7 @@
 // src/commands/index.js
 // Comandos slash del bot — Lush Family
 
-import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
 import { db_frases, db_lore, db_triggers, db_config, db_economia, db_cooldowns } from '../memory/database.js';
 import { responderMensaje, consultarGemini } from '../memory/brain.js';
 
@@ -414,6 +414,112 @@ function esAdmin(member) {
   });
 }
 
+export function getGuiaEmbed(category, botAvatar) {
+  switch (category) {
+    case 'inicio':
+      return new EmbedBuilder()
+        .setTitle('📚 Lush Bot — Guía de Comandos')
+        .setDescription('Usa el menú desplegable de abajo para explorar todas las secciones del bot. ¡Elige una categoría para ver sus comandos!')
+        .setColor('#FF6B35')
+        .setThumbnail(botAvatar)
+        .setTimestamp();
+
+    case 'memoria':
+      return new EmbedBuilder()
+        .setTitle('🧠 Familia & Memoria (IA)')
+        .setColor('#9B59B6')
+        .setDescription('El bot aprende de la comunidad y posee inteligencia artificial.')
+        .addFields(
+          { name: '/frase <texto>', value: 'Guarda una frase legendaria del servidor', inline: true },
+          { name: '/lore <historia>', value: 'Guarda un momento épico de la familia', inline: true },
+          { name: '/trigger <palabra>', value: 'Agrega una palabra clave que me activa', inline: true },
+          { name: '/recuerdo', value: 'Saca una frase o lore aleatorio de la base de datos', inline: true },
+          { name: '💬 Conversación con IA', value: 'Mencióname (`@Lush Bot`) o usa mi nombre en tu mensaje para chatear conmigo.', inline: false }
+        );
+
+    case 'economia':
+      return new EmbedBuilder()
+        .setTitle('💼 Economía & Banco')
+        .setColor('#F59E0B')
+        .setDescription('Gana monedas trabajando o recolectando recursos, y guárdalas seguras en tu cuenta.')
+        .addFields(
+          { name: '/perfil', value: 'Mira tu dinero, nivel, XP y título actual', inline: true },
+          { name: '/trabajar', value: 'Trabaja un rato para ganar monedas (cada 30 min)', inline: true },
+          { name: '/minar', value: '⛏️ Ve a la mina a recolectar minerales', inline: true },
+          { name: '/pescar', value: '🎣 Pesca en el lago', inline: true },
+          { name: '/farmear', value: '🌾 Siembra y cosecha en tu granja', inline: true },
+          { name: '/vender', value: 'Vende todos tus recursos acumulados por monedas', inline: true },
+          { name: '/saldo', value: '🏦 Consulta tu billetera y tu cuenta bancaria', inline: true },
+          { name: '/depositar <cantidad>', value: '🏦 Guarda tus monedas seguras en el banco', inline: true },
+          { name: '/retirar <cantidad>', value: '🏦 Saca monedas del banco a tu billetera', inline: true },
+          { name: '/transferir <usuario> <cantidad>', value: '💸 Págale monedas a otro usuario', inline: true },
+          { name: '/robar <usuario>', value: '🦹 Intenta robarle a alguien (¡Cuidado con la multa!)', inline: true }
+        )
+        .setFooter({ text: '⏳ Cooldown de recolección: 5 minutos • Depósitos en banco evitan robos' });
+
+    case 'casino':
+      return new EmbedBuilder()
+        .setTitle('🎰 Casino & Minijuegos')
+        .setColor('#EF4444')
+        .setDescription('¡Apuesta tus monedas o juega con tus amigos en el chat!')
+        .addFields(
+          { name: '/slots <apuesta>', value: '🎰 Tragamonedas — ¡Triple 7️⃣ paga x10 Jackpot!', inline: true },
+          { name: '/coinflip <apuesta>', value: '🪙 Lanza una moneda — Cara o Cruz (50% de probabilidad)', inline: true },
+          { name: '/dados <apuesta>', value: '🎲 Tira dados contra el bot — la mayor suma gana', inline: true },
+          { name: '/ruleta <apuesta> <color>', value: '🎡 Apuesta: Rojo/Negro (x2) o Verde (x14)', inline: true },
+          { name: '/blackjack <apuesta>', value: '🃏 Juega Blackjack clásico con botones interactivos', inline: true },
+          { name: '/ppt <opcion>', value: '✊ Juega Piedra, Papel o Tijeras contra el bot', inline: true },
+          { name: '/8ball <pregunta>', value: '🎱 Hazle una pregunta a la bola mágica', inline: true },
+          { name: '/adivina', value: '🔢 Intenta adivinar el número secreto (1 al 10)', inline: true },
+          { name: '/ship <usuario>', value: '💕 Mide la compatibilidad de amor entre dos personas', inline: true },
+          { name: '/duelo <usuario> <apuesta>', value: '⚔️ Reta a alguien a un duelo por monedas', inline: true }
+        )
+        .setFooter({ text: '💰 Apuesta mínima: 10 • máxima: 50,000' });
+
+    case 'social':
+      return new EmbedBuilder()
+        .setTitle('🎭 Social & Roleplay')
+        .setColor('#E91E63')
+        .setDescription('Interactúa con otros usuarios en el servidor usando comandos visuales con GIFs.')
+        .addFields(
+          { name: '/casarse @usuario', value: '💍 Propón matrimonio (con botones de aceptación)', inline: true },
+          { name: '/divorciarse', value: '💔 Divórciate de tu pareja actual', inline: true },
+          { name: '/pareja [@usuario]', value: '💖 Consulta tu pareja o la de alguien más (con avatares)', inline: true },
+          { name: '/abrazar @usuario', value: '🤗 Abraza a alguien', inline: true },
+          { name: '/besar @usuario', value: '💋 Dale un tierno beso a alguien', inline: true },
+          { name: '/patear @usuario', value: '👣 Dale una patada a alguien', inline: true },
+          { name: '/punete @usuario', value: '👊 Dale un fuerte puñetazo', inline: true },
+          { name: '/suplex @usuario', value: '🤼 Aplícale un suplex de lucha libre', inline: true },
+          { name: '/bofetada @usuario', value: '🖐️ Métele una bofetada', inline: true },
+          { name: '/acariciar @usuario', value: '😊 Acaricia su cabeza', inline: true },
+          { name: '/morder @usuario', value: '🦷 Muerde a alguien', inline: true },
+          { name: '/matar @usuario', value: '💀 Elimina a alguien en broma', inline: true },
+          { name: '/esquivar @usuario', value: '💨 Esquiva un ataque', inline: true },
+          { name: '/esconderse [@usuario]', value: '🫣 Escóndete de alguien o métete en una caja', inline: true },
+          { name: '/bailar [@usuario]', value: '💃 Baila solo o saca los pasos prohibidos en pareja', inline: true },
+          { name: '💬 Acciones por texto', value: 'También puedes escribir directo en el chat sin el `/` (ej. *"patea a @Nocturne"*, *"Lushbot baila"*).', inline: false }
+        );
+
+    case 'niveles':
+      return new EmbedBuilder()
+        .setTitle('📊 Niveles & Rangos')
+        .setColor('#8B5CF6')
+        .setDescription(
+          'Gana experiencia (XP) de forma activa enviando mensajes en los canales de texto. ¡Sube de nivel y desbloquea rangos especiales!\n\n' +
+          '```\n' +
+          'Lv.1  → Novato del Chat\n' +
+          'Lv.5  → Miembro Casual\n' +
+          'Lv.10 → Combo Breaker\n' +
+          'Lv.15 → Freestyler\n' +
+          'Lv.20 → Leyenda Lush\n' +
+          'Lv.25 → Icono del Chat\n' +
+          'Lv.30 → Dios del Server\n' +
+          '```'
+        )
+        .setFooter({ text: 'Lush Family • ¡Sube de rango chateando! 🎮' });
+  }
+}
+
 // ─── HANDLER ────────────────────────────────────────────────────────────────
 
 export async function handleCommand(interaction) {
@@ -733,83 +839,42 @@ export async function handleCommand(interaction) {
     // 📖 GUÍA & REGLAS
     // ═══════════════════════════════════════════════════════════════
 
-    case 'guia': {
-      const embeds = [
-        new EmbedBuilder()
-          .setTitle('🐟 Lush Bot — Guía de Comandos')
-          .setDescription('Todo lo que necesitas saber para disfrutar del bot.')
-          .setColor('#FF6B35')
-          .setThumbnail(interaction.client.user.displayAvatarURL())
-          .setTimestamp(),
+        case 'guia': {
+      const welcomeEmbed = getGuiaEmbed('inicio', interaction.client.user.displayAvatarURL());
 
-        new EmbedBuilder()
-          .setTitle('🧠 Familia & Memoria')
-          .setColor('#9B59B6')
-          .addFields(
-            { name: '/recuerdo', value: 'Saco algo random de la familia', inline: true },
-            { name: '/frase <texto>', value: 'Guarda una frase legendaria', inline: true },
-            { name: '/lore <historia>', value: 'Guarda un momento épico', inline: true },
-            { name: '/trigger <palabra>', value: 'Agrego una palabra que me activa', inline: true },
-            { name: '/gemini <pregunta>', value: 'Pregúntale a la IA', inline: true },
-            { name: '\u200b', value: '\u200b', inline: true },
-          ),
+      const select = new StringSelectMenuBuilder()
+        .setCustomId('guia_menu')
+        .setPlaceholder('Elige una categoría de comandos')
+        .addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel('📚 Inicio')
+            .setDescription('Volver a la bienvenida de la guía')
+            .setValue('inicio'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('🧠 Memoria & IA')
+            .setDescription('Frases, lore, triggers e IA')
+            .setValue('memoria'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('💰 Economía & Banco')
+            .setDescription('Monedas, trabajos, minería y banco')
+            .setValue('economia'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('🎰 Casino & Minijuegos')
+            .setDescription('Apuestas, slots, ruleta, blackjack y duelos')
+            .setValue('casino'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('🎭 Social & Roleplay')
+            .setDescription('Matrimonios, abrazos, suplex, bailes y texto plano')
+            .setValue('social'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('📊 Niveles & Rangos')
+            .setDescription('Rangos de nivel de chat y experiencia')
+            .setValue('niveles')
+        );
 
-        new EmbedBuilder()
-          .setTitle('💼 Economía & Trabajos')
-          .setColor('#F59E0B')
-          .addFields(
-            { name: '/perfil', value: 'Tu nivel, XP y monedas', inline: true },
-            { name: '/minar', value: '⛏️ Piedra • Hierro • Oro • 💎', inline: true },
-            { name: '/pescar', value: '🎣 Pez • Globo • Dorado • 🦑', inline: true },
-            { name: '/farmear', value: '🌾 Trigo • Zanahoria • Sandía • ⭐', inline: true },
-            { name: '/vender', value: 'Vende todos tus recursos', inline: true },
-            { name: '/trabajo', value: 'Trabaja cada 30 min', inline: true },
-          )
-          .setFooter({ text: '⏳ Cooldown: 5 min entre recolecciones • 💎 Items raros valen 1,000💰' }),
+      const row = new ActionRowBuilder().addComponents(select);
 
-        new EmbedBuilder()
-          .setTitle('🛒 Tienda Lush')
-          .setColor('#22C55E')
-          .addFields(
-            { name: '/tienda', value: 'Explora categorías con menú interactivo', inline: false },
-            { name: '/comprar <item>', value: 'Compra un item de la tienda', inline: false },
-            { name: '🎨 Roles de Color', value: 'Desde 500💰 • Dorado 2,000💰 • Arcoíris 5,000💰', inline: false },
-            { name: '🏷️ Títulos', value: 'Leyenda 3,000💰 • OG 2,000💰 • Shadow 1,500💰', inline: true },
-            { name: '⚡ Power-Ups', value: 'XP x2 desde 300💰 • 🎰 Lotería 100💰', inline: true },
-          ),
-
-        new EmbedBuilder()
-          .setTitle('🎰 Casino Lush')
-          .setColor('#EF4444')
-          .addFields(
-            { name: '/slots <apuesta>', value: '🎰 Tragamonedas — Triple 7️⃣ = x10 Jackpot!', inline: true },
-            { name: '/coinflip <apuesta>', value: '🪙 Cara o Cruz — 50/50', inline: true },
-            { name: '/dados <apuesta>', value: '🎲 Dados vs Bot — mayor suma gana', inline: true },
-            { name: '/ruleta <apuesta> <color>', value: '🔴 Rojo/Negro x2 • 🟢 Verde x14', inline: true },
-            { name: '/blackjack <apuesta>', value: '🃏 Interactivo con botones • Natural x2.5', inline: true },
-            { name: '\u200b', value: '\u200b', inline: true },
-          )
-          .setFooter({ text: '💰 Apuesta mín: 10 • máx: 50,000 • ¡Juega responsablemente!' }),
-
-        new EmbedBuilder()
-          .setTitle('📊 Niveles & Rangos')
-          .setColor('#8B5CF6')
-          .setDescription(
-            'Gana XP al chatear y usar comandos. \u00a1Sube de nivel autom\u00e1ticamente!\n\n' +
-            '```\n' +
-            'Lv.1  \u2192 Novato del Beat\n' +
-            'Lv.5  \u2192 Bailar\u00edn Casual\n' +
-            'Lv.10 \u2192 Combo Breaker\n' +
-            'Lv.15 \u2192 Freestyler\n' +
-            'Lv.20 \u2192 M\u00e1quina de BPM\n' +
-            'Lv.25 \u2192 Leyenda del Dance Floor\n' +
-            'Lv.30 \u2192 \u00cdcono Lush\n' +
-            '```'
-          )
-          .setFooter({ text: '🐟 Lush Family — Audition Latino • ¡Diviértanse, familia! 🎮' }),
-      ];
-
-      return interaction.reply({ embeds });
+      return interaction.reply({ embeds: [welcomeEmbed], components: [row] });
     }
 
     case 'reglas': {
