@@ -17,14 +17,51 @@ const ACTION_MAP = {
   'mat': 'kill',
   'sonri': 'smile',
   'salud': 'wave',
-  'lami': 'lick'
+  'lami': 'lick',
+  'suplex': 'suplex',
+  'esquiv': 'dodge',
+  'escond': 'hide',
+  'ocult': 'hide',
+  'punet': 'punch'
+};
+
+// GIFs personalizados/locales con prioridad
+const CUSTOM_GIFS = {
+  dance_solo: [
+    'https://media.tenor.com/e2oA9c3jQ9oAAAAC/chika-dance.gif',
+    'https://media.tenor.com/W2o4s1Tiv68AAAAC/anime-dance.gif',
+    'https://media.tenor.com/G3j9W4vR690AAAAC/dance-anime.gif',
+    'https://media.tenor.com/1Gv25Yg1D-QAAAAd/anime-dance.gif'
+  ],
+  dance_couple: [
+    'https://media.tenor.com/pZ2GkF7zQj0AAAAC/anime-dance-dance.gif',
+    'https://media.tenor.com/tHqg2uAbe_YAAAAC/dance-couple.gif',
+    'https://media.tenor.com/yFpxn60R52IAAAAd/toradora-dance.gif',
+    'https://media.tenor.com/cE01v5sU86QAAAAC/dance-couple-anime.gif'
+  ],
+  suplex: [
+    'https://media.tenor.com/2mC1SgXv2-QAAAAC/anime-suplex.gif',
+    'https://media.tenor.com/gK2_P2B743MAAAAC/suplex-anime.gif',
+    'https://media.tenor.com/Xg7T0nZfJpQAAAAC/golden-boy-suplex.gif',
+    'https://media.tenor.com/7s1H-BqXUqgAAAAd/suplex-anime.gif'
+  ],
+  dodge: [
+    'https://media.tenor.com/P1v3tP82pCcAAAAC/matrix-anime.gif',
+    'https://media.tenor.com/c5B9x_Jg0U0AAAAC/dodge-anime.gif',
+    'https://media.tenor.com/18m6P4w68WwAAAAC/anime-dodge.gif'
+  ],
+  hide: [
+    'https://media.tenor.com/1V3u6T3D98oAAAAC/anime-hide.gif',
+    'https://media.tenor.com/e5k0lQnN9QMAAAAd/anime-box-box.gif',
+    'https://media.tenor.com/hK8bB16n1Y8AAAAd/anime-hide-under-table.gif'
+  ]
 };
 
 // GIFs alternativos de respaldo por si falla la API
 const BACKUP_GIFS = {
   hug: ['https://media.tenor.com/kCZjHwqwsDsAAAAC/anime-hug.gif', 'https://media.tenor.com/3mr76n545a8AAAAC/hug-anime.gif'],
   kiss: ['https://media.tenor.com/wDYW5wzhy3oAAAAC/anime-kiss.gif', 'https://media.tenor.com/393o4S4wK4oAAAAC/kiss-anime.gif'],
-  punch: ['https://media.tenor.com/4t9gHlP4658AAAAC/anime-punch.gif'],
+  punch: ['https://media.tenor.com/4t9gHlP4658AAAAC/anime-punch.gif', 'https://media.tenor.com/EvmgK8F-gwcAAAAC/one-punch-man-saitama.gif'],
   kick: ['https://media.tenor.com/E57_tOm8g7QAAAAC/anime-kick.gif', 'https://media.tenor.com/y1vOuhK95p8AAAAC/kick-anime-kick.gif'],
   slap: ['https://media.tenor.com/XiYuU9srGToAAAAC/anime-slap-slap.gif'],
   cry: ['https://media.tenor.com/D8aQkQ_Qj3sAAAAd/cry-anime.gif'],
@@ -38,6 +75,11 @@ const BACKUP_GIFS = {
 };
 
 async function getGif(action) {
+  if (CUSTOM_GIFS[action]) {
+    const list = CUSTOM_GIFS[action];
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
   try {
     const res = await fetch(`https://api.otakugifs.xyz/gif?reaction=${action}`);
     if (res.ok) {
@@ -111,11 +153,15 @@ export async function checkNaturalRoleplay(message) {
     'patea a': { key: 'kick', desc: '👣 ¡PUM! **{user}** patea a **{target}**' },
     'golpea a': { key: 'punch', desc: '👊 **{user}** golpea a **{target}**' },
     'pega a': { key: 'punch', desc: '👊 **{user}** le pega a **{target}**' },
+    'da un puñete a': { key: 'punch', desc: '👊 **{user}** le da un tremendo puñete a **{target}**' },
     'cachetea a': { key: 'slap', desc: '🖐️ **{user}** le mete una bofetada a **{target}**' },
     'muerde a': { key: 'bite', desc: '🦷 **{user}** le da una mordida a **{target}**' },
     'mata a': { key: 'kill', desc: '💀 **{user}** eliminó a **{target}** del mapa' },
     'acaricia a': { key: 'pat', desc: '😊 **{user}** acaricia la cabeza de **{target}**' },
-    'lame a': { key: 'lick', desc: '👅 **{user}** lame a **{target}**' }
+    'lame a': { key: 'lick', desc: '👅 **{user}** lame a **{target}**' },
+    'le hace un suplex a': { key: 'suplex', desc: '🤼 ¡SUPLEX BRUTAL! **{user}** levanta y azota a **{target}** contra el suelo' },
+    'suplex a': { key: 'suplex', desc: '🤼 ¡SUPLEX BRUTAL! **{user}** levanta y azota a **{target}** contra el suelo' },
+    'esquiva a': { key: 'dodge', desc: '💨 **{user}** esquiva el ataque de **{target}** con agilidad' }
   };
 
   for (const [verbo, info] of Object.entries(VERBOS)) {
@@ -194,10 +240,31 @@ export async function handleRoleplayCommand(interaction) {
       description = `💀 **${user}** eliminó a **${target}** del mapa`;
       break;
     case 'bailar':
-      actionKey = 'dance';
-      description = target 
-        ? `💃 **${user}** se pone a bailar alegremente con **${target}**`
-        : `💃 **${user}** saca sus mejores pasos y se pone a bailar solo`;
+      if (target) {
+        actionKey = 'dance_couple';
+        description = `💃 **${user}** se pone a bailar alegremente con **${target}** 🎶`;
+      } else {
+        actionKey = 'dance_solo';
+        description = `💃 **${user}** saca sus mejores pasos y se pone a bailar solo`;
+      }
+      break;
+    case 'suplex':
+      actionKey = 'suplex';
+      description = `🤼 ¡DIOS MÍO! **${user}** le aplica un suplex brutal a **${target}** 💥`;
+      break;
+    case 'punete':
+      actionKey = 'punch';
+      description = `👊 ¡POW! **${user}** le da un fuerte puñete a **${target}**`;
+      break;
+    case 'esquivar':
+      actionKey = 'dodge';
+      description = `💨 **${user}** esquiva el ataque de **${target}** con reflejos de Matrix`;
+      break;
+    case 'esconderse':
+      actionKey = 'hide';
+      description = target
+        ? `🫣 **${user}** se esconde rápidamente de **${target}**`
+        : `🫣 **${user}** se esconde en una caja de cartón`;
       break;
   }
 

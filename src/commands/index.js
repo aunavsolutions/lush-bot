@@ -359,6 +359,30 @@ export const commands = [
     .setDescription('💃 ¡A bailar!')
     .addUserOption(opt => opt.setName('usuario').setDescription('Con quién bailar (opcional)').setRequired(false))
     .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('suplex')
+    .setDescription('🤼 Aplícale un suplex brutal a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién aplicarle el suplex').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('punete')
+    .setDescription('👊 Dale un puñete a alguien')
+    .addUserOption(opt => opt.setName('usuario').setDescription('A quién golpear').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('esquivar')
+    .setDescription('💨 Esquiva un ataque con estilo')
+    .addUserOption(opt => opt.setName('usuario').setDescription('De quién esquivar el ataque').setRequired(true))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('esconderse')
+    .setDescription('🫣 Escóndete de alguien o escóndete solo')
+    .addUserOption(opt => opt.setName('usuario').setDescription('De quién esconderte (opcional)').setRequired(false))
+    .toJSON(),
 ];
 
 function normalizeText(text) {
@@ -1146,6 +1170,10 @@ export async function handleCommand(interaction) {
     case 'morder':
     case 'matar':
     case 'bailar':
+    case 'suplex':
+    case 'punete':
+    case 'esquivar':
+    case 'esconderse':
       return handleRoleplayCommand(interaction);
 
     default:
