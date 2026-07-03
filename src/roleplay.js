@@ -154,6 +154,8 @@ export async function checkNaturalRoleplay(message) {
     'golpea a': { key: 'punch', desc: '👊 **{user}** golpea a **{target}**' },
     'pega a': { key: 'punch', desc: '👊 **{user}** le pega a **{target}**' },
     'da un puñete a': { key: 'punch', desc: '👊 **{user}** le da un tremendo puñete a **{target}**' },
+    'le mete un puñete a': { key: 'punch', desc: '👊 **{user}** le da un tremendo puñete a **{target}**' },
+    'puñete a': { key: 'punch', desc: '👊 **{user}** le da un tremendo puñete a **{target}**' },
     'cachetea a': { key: 'slap', desc: '🖐️ **{user}** le mete una bofetada a **{target}**' },
     'muerde a': { key: 'bite', desc: '🦷 **{user}** le da una mordida a **{target}**' },
     'mata a': { key: 'kill', desc: '💀 **{user}** eliminó a **{target}** del mapa' },
