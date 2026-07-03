@@ -150,6 +150,16 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 
+  // Menú de la guía de comandos
+  if (interaction.isStringSelectMenu() && interaction.customId === 'guia_menu') {
+    const { getGuiaEmbed } = await import('./commands/index.js');
+    const category = interaction.values[0];
+    const embed = getGuiaEmbed(category, interaction.client.user.displayAvatarURL());
+    if (embed) {
+      return interaction.update({ embeds: [embed] });
+    }
+  }
+
   if (interaction.isButton() && interaction.customId === 'shop_back') {
     const { buildShopEmbed } = await import('./shop.js');
     const { embed, components } = buildShopEmbed();
