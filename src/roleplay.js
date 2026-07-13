@@ -27,6 +27,36 @@ const ACTION_MAP = {
 
 // GIFs personalizados/locales con prioridad (URLs directas verificadas)
 const CUSTOM_GIFS = {
+  kick: [
+    'https://media.tenor.com/o52AZQZ_PloAAAAC/kick-anime.gif',
+    'https://media.tenor.com/06XcN2z7G0gAAAAC/kick-go-away.gif',
+    'https://media.tenor.com/IXWwEYZufdIAAAAC/gojo-vs-miguel-gojo.gif',
+    'https://media.tenor.com/Lyqfq7_vJnsAAAAC/kick-funny.gif',
+    'https://media.tenor.com/7te6q4wtcYoAAAAC/mad-angry.gif'
+  ],
+  punch: [
+    'https://media.tenor.com/54vXJe6Jj3kAAAAC/spy-family-spy-x-family.gif',
+    'https://media.tenor.com/Kbit6lroRFUAAAAC/one-punch-man-saitama.gif',
+    'https://media.tenor.com/pNmajM4wmtkAAAAC/punch-smash.gif',
+    'https://media.tenor.com/yA_KtmPI1EMAAAAC/hxh-hunter-x-hunter.gif',
+    'https://media.tenor.com/Ktd3wl6JEEMAAAAC/punch-anime-girl-punch.gif'
+  ],
+  slap: [
+    'https://media.tenor.com/Ws6Dm1ZW_vMAAAAC/girl-slap.gif',
+    'https://media.tenor.com/ykCjxWVvq18AAAAC/slap-slapping.gif',
+    'https://media.tenor.com/XiYuU9h44-AAAAAC/anime-slap-mad.gif',
+    'https://media.tenor.com/Sv8LQZAoQmgAAAAC/chainsaw-man-csm.gif',
+    'https://media.tenor.com/cfobWWgjG8wAAAAC/anime-kaguya-sama.gif'
+  ],
+  suplex: [
+    'https://media.tenor.com/gkYwdy1NWcUAAAAC/nichijou-anime.gif',
+    'https://media.tenor.com/N4CSeJCk1HsAAAAC/kureha-sakamachi.gif',
+    'https://media.tenor.com/b3qy6Po4-2cAAAAC/hataage-suplex-princess.gif',
+    'https://media.tenor.com/DJOClHUo_aUAAAAC/jujutsu-kaisen-megumi-fushiguro.gif',
+    'https://media.tenor.com/rwgdnhaZ8UUAAAAC/power-anime.gif'
+  ],
+
+
   dance_solo: [
     'https://media1.tenor.com/m/e2oA9c3jQ9oAAAAd/chika-dance.gif',
     'https://media1.tenor.com/m/W2o4s1Tiv68AAAAd/anime-dance.gif',
@@ -115,24 +145,49 @@ const BACKUP_GIFS = {
   ]
 };
 
+// Acciones soportadas por nekos.best
+const NEKOS_BEST_ACTIONS = new Set([
+  'hug','kiss','punch','kick','slap','cry','dance','pat','bite','kill','smile','wave','lick',
+  'baka','blush','cuddle','feed','handhold','highfive','laugh','nod','nope','poke','run',
+  'shoot','shrug','sleep','stare','think','thumbsup','tickle','wink','yawn'
+]);
+
 async function getGif(action) {
+  // 1. Acciones especiales con GIFs custom (suplex, bailes, dodge, hide)
   if (CUSTOM_GIFS[action]) {
     const list = CUSTOM_GIFS[action];
     return list[Math.floor(Math.random() * list.length)];
   }
 
+  // 2. Intentar nekos.best (API dedicada a GIFs de anime, muy fiable)
+  if (NEKOS_BEST_ACTIONS.has(action)) {
+    try {
+      const res = await fetch(`https://nekos.best/api/v2/${action}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.results?.[0]?.url) return data.results[0].url;
+      }
+    } catch (e) {
+      console.error('[Roleplay] nekos.best falló:', e.message);
+    }
+  }
+
+  // 3. Fallback: otakugifs
   try {
     const res = await fetch(`https://api.otakugifs.xyz/gif?reaction=${action}`);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.url) return data.url;
+      if (data?.url) return data.url;
     }
   } catch (e) {
-    console.error('[Roleplay] Error al obtener de otakugifs, usando backup:', e.message);
+    console.error('[Roleplay] otakugifs también falló:', e.message);
   }
+
+  // 4. Último recurso: BACKUP_GIFS estáticos
   const backup = BACKUP_GIFS[action];
   return backup ? backup[Math.floor(Math.random() * backup.length)] : '';
 }
+
 
 // ─── LEER TEXTO PLANO (Roleplay con asteriscos) ─────────────────────────────
 export async function checkRoleplay(message) {
