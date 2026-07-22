@@ -1,7 +1,7 @@
 // src/events/messageCreate.js
 // El oído del bot — escucha todo, actúa cuando tiene sentido
 
-import { db_frases, db_lore, db_triggers, db_historial, db_config } from '../memory/database.js';
+import { db_frases, db_lore, db_triggers, db_historial, db_config, db_nombres } from '../memory/database.js';
 import { responderMensaje, debeResponder } from '../memory/brain.js';
 import { agregarXP, embedNivelUp } from '../levels.js';
 import { checkRoleplay, checkNaturalRoleplay } from '../roleplay.js';
@@ -186,10 +186,10 @@ async function enviarRespuestaFallback(message) {
     "Jajaja total.",
     "Qué cosas, ¿no? 😅",
     "No sé qué decirte a eso la verdad.",
-    "Interesante... cuéntame más.",
-    "Ando un poco distraído hoy, disculpa.",
     "Uff, me quedé pensando en otra cosa.",
-    "Qué loco todo eso."
+    "Qué loco todo eso.",
+    "Me perdí un segundo, ¿de qué hablábamos?",
+    "Buena esa, no tengo argumento 😂"
   ];
   const respuestaC = respuestasCasuales[Math.floor(Math.random() * respuestasCasuales.length)];
   return message.channel.send(respuestaC);
@@ -200,12 +200,15 @@ async function handleAIResponse(message, content, guildConfig) {
     await message.channel.sendTyping();
 
     const history = getChatHistory(message.channel.id);
-    const mensajeConAutor = `${message.author.username}: ${content}`;
+    
+    // Usar displayName (nombre visible en el server) en vez de username (nombre técnico)
+    const displayName = message.member?.displayName || message.author.displayName || message.author.username;
+    const mensajeConAutor = `${displayName}: ${content}`;
 
     // Delay humano (entre 1 y 3 segundos)
     await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
 
-    const respuesta = await responderMensaje(mensajeConAutor, history, guildConfig, message.author.id, message.author.username);
+    const respuesta = await responderMensaje(mensajeConAutor, history, guildConfig, message.author.id, displayName);
 
     if (respuesta && respuesta.length > 0) {
       await message.channel.send(respuesta);
