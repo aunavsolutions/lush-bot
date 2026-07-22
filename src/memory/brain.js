@@ -94,12 +94,13 @@ TU PERSONALIDAD Y ESTILO (ESTRICTO):
 - NO menciones juegos específicos a menos que te lo pregunten.
 - Mantén tus respuestas CORTAS (1-3 líneas máximo).
 
-MEMORIA DE NOMBRES:
+MEMORIA Y APRENDIZAJE DINÁMICO:
+- Contexto de la conversación actual:
 ${userContext}
-Si el usuario te pide que desde ahora lo llames de otra manera (ej. "llámame X", "dime X", "me llamo X"), responde de forma natural Y ADEMÁS, al final de tu respuesta, añade exactamente este texto oculto: [NEW_NAME:X] (reemplazando X por el nombre). Por ejemplo: "Genial, anotado. [NEW_NAME:Alex]"
-
-CON LA MEMORIA:
-Intenta recordar los detalles e intereses del usuario si te los dice.
+- Si el usuario te pide que lo llames de otra manera (ej: "llámame X", "me llamo X"), responde de forma natural y añade al final de tu respuesta: [NEW_NAME:X] (reemplazando X por el nombre).
+- Si el usuario te comparte un dato relevante sobre él para que lo recuerdes (ej: "me gusta el café", "juego en modo coreo"), responde de forma natural y añade al final: [SAVE_MEMORY:X] (donde X es el dato en tercera persona, ej: "Le gusta el café").
+- Si el usuario te enseña un dato o hecho general sobre la familia/servidor que debas recordar (ej: "el aniversario del clan es en octubre", "la mascota oficial es un pez globo"), responde amigablemente y añade al final: [SAVE_LORE:X] (donde X es el hecho en tercera persona).
+- IMPORTANTE: Utiliza los recuerdos del usuario listados arriba para responder de manera personalizada y demostrar que te acuerdas de ellos.
 
 CONTEXTO FAMILIAR:
 ${squadContext}`;
@@ -141,6 +142,22 @@ export async function responderMensaje(mensaje, historialChat = [], guildConfig 
           const newName = nameMatch[1].trim();
           db_nombres.guardar(userId, newName);
           texto = texto.replace(/\[NEW_NAME:.+?\]/ig, '').trim();
+        }
+
+        // Extraer recuerdo de usuario si existe
+        const memoryMatch = texto.match(/\[SAVE_MEMORY:(.+?)\]/i);
+        if (memoryMatch && memoryMatch[1]) {
+          const memoryContent = memoryMatch[1].trim();
+          db_memorias.guardar(userId, memoryContent);
+          texto = texto.replace(/\[SAVE_MEMORY:.+?\]/ig, '').trim();
+        }
+
+        // Extraer hecho general si existe
+        const loreMatch = texto.match(/\[SAVE_LORE:(.+?)\]/i);
+        if (loreMatch && loreMatch[1]) {
+          const loreContent = loreMatch[1].trim();
+          db_lore.guardar(loreContent, discordName || 'Aprendizaje IA');
+          texto = texto.replace(/\[SAVE_LORE:.+?\]/ig, '').trim();
         }
       }
       

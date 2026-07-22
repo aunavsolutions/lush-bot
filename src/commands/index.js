@@ -406,6 +406,24 @@ export const commands = [
     .setName('olvidame')
     .setDescription('🧹 Borra tu nombre y todos tus recuerdos de la base de datos del bot')
     .toJSON(),
+
+  // GENERAL MEMORY LORE COMMANDS
+  new SlashCommandBuilder()
+    .setName('aprender')
+    .setDescription('🧠 Enséñale al bot un hecho o recuerdo general sobre el clan/servidor')
+    .addStringOption(opt => opt.setName('hecho').setDescription('Ej: El aniversario de la familia es en octubre, etc.').setRequired(true).setMaxLength(300))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('hechos')
+    .setDescription('📖 Muestra la lista de hechos generales y lore que el bot ha aprendido')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('olvidar-hecho')
+    .setDescription('🧹 Haz que el bot olvide un hecho general que haya aprendido')
+    .addStringOption(opt => opt.setName('busqueda').setDescription('Parte del texto del hecho que quieres borrar').setRequired(true).setMaxLength(100))
+    .toJSON(),
 ];
 
 function normalizeText(text) {
@@ -1320,6 +1338,58 @@ export async function handleCommand(interaction) {
       return interaction.reply({
         content: `🧹 He borrado tu nombre preferido y todos tus recuerdos de mi memoria. ¡Empezamos de cero!`,
         ephemeral: true
+      });
+    }
+
+    case 'aprender': {
+      const hecho = interaction.options.getString('hecho').trim();
+      db_lore.guardar(hecho, interaction.user.username);
+      return interaction.reply({
+        content: `🧠 ¡Entendido! He aprendido este hecho general sobre la familia: *"${hecho}"*. Lo tendré en cuenta en mis conversaciones.`,
+        ephemeral: false
+      });
+    }
+
+    case 'hechos': {
+      const todoLore = db_lore.obtenerTodo(30);
+
+      const embed = new EmbedBuilder()
+        .setTitle('📖 Lore y Hechos Aprendidos')
+        .setColor('#E67E22')
+        .setTimestamp();
+
+      if (todoLore.length > 0) {
+        const desc = todoLore.map(l => `• **[ID: ${l.id}]** ${l.contenido} *(por ${l.autor || 'IA'})*`).join('\n');
+        embed.setDescription(desc);
+      } else {
+        embed.setDescription('*Aún no he aprendido ningún hecho general sobre el clan/servidor. ¡Usa \`/aprender\` para enseñarme algo!*');
+      }
+
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    case 'olvidar-hecho': {
+      const busqueda = interaction.options.getString('busqueda').trim().toLowerCase();
+      const rows = db.prepare(`SELECT * FROM lore WHERE contenido LIKE ? LIMIT 5`).all(`%${busqueda}%`);
+      
+      if (rows.length === 0) {
+        return interaction.reply({ content: `❌ No encontré ningún hecho que coincida con "${busqueda}".`, ephemeral: true });
+      }
+
+      if (rows.length > 1) {
+        const lista = rows.map(r => `• **[ID: ${r.id}]** ${r.contenido}`).join('\n');
+        return interaction.reply({
+          content: `⚠️ Encontré más de una coincidencia. Por favor, sé más específico o borra directamente el hecho:\n${lista}`,
+          ephemeral: true
+        });
+      }
+
+      const hechoABorrar = rows[0];
+      db.prepare(`DELETE FROM lore WHERE id = ?`).run(hechoABorrar.id);
+
+      return interaction.reply({
+        content: `🧹 He borrado de mi memoria este hecho: *"${hechoABorrar.contenido}"*`,
+        ephemeral: false
       });
     }
 
