@@ -125,8 +125,22 @@ export default async function onMessageCreate(message) {
   const botMencionado = message.mentions.users.has(message.client.user.id) || nombreBotRegex.test(content);
 
   if (botMencionado) {
-    const mensajeSinMencion = content.replace(/<@!?\d+>/g, '').replace(nombreBotRegex, '').trim();
-    await handleAIResponse(message, mensajeSinMencion || '¿qué?', guildConfig);
+    // Solo quitar la mención del BOT, y reemplazar las menciones de otros usuarios por su nombre visible
+    const botId = message.client.user.id;
+    let mensajeLimpio = content
+      .replace(new RegExp(`<@!?${botId}>`, 'g'), '')  // Quitar mención del bot
+      .replace(nombreBotRegex, '');                     // Quitar nombre del bot en texto
+
+    // Reemplazar menciones de otros usuarios por su displayName
+    for (const [userId, user] of message.mentions.users) {
+      if (userId === botId) continue;
+      const member = message.guild?.members.cache.get(userId);
+      const nombre = member?.displayName || user.displayName || user.username;
+      mensajeLimpio = mensajeLimpio.replace(new RegExp(`<@!?${userId}>`, 'g'), nombre);
+    }
+
+    mensajeLimpio = mensajeLimpio.trim();
+    await handleAIResponse(message, mensajeLimpio || '¿qué?', guildConfig);
     return;
   }
 
