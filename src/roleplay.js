@@ -53,10 +53,12 @@ const CUSTOM_GIFS = {
     'https://media.tenor.com/N4CSeJCk1HsAAAAC/kureha-sakamachi.gif',
     'https://media.tenor.com/b3qy6Po4-2cAAAAC/hataage-suplex-princess.gif',
     'https://media.tenor.com/DJOClHUo_aUAAAAC/jujutsu-kaisen-megumi-fushiguro.gif',
-    'https://media.tenor.com/rwgdnhaZ8UUAAAAC/power-anime.gif'
+    'https://media.tenor.com/rwgdnhaZ8UUAAAAC/power-anime.gif',
+    'https://media1.tenor.com/m/Xg7T0nZfJpQAAAAd/golden-boy-suplex.gif',
+    'https://media1.tenor.com/m/VWCfO2KnoIsAAAAd/suplex-wrestling.gif',
+    'https://media1.tenor.com/m/UrA__4JFcq4AAAAd/suplex-anime.gif',
+    'https://media1.tenor.com/m/gXF-zxnX4rIAAAAd/suplex.gif'
   ],
-
-
   dance_solo: [
     'https://media1.tenor.com/m/e2oA9c3jQ9oAAAAd/chika-dance.gif',
     'https://media1.tenor.com/m/W2o4s1Tiv68AAAAd/anime-dance.gif',
@@ -68,12 +70,6 @@ const CUSTOM_GIFS = {
     'https://media1.tenor.com/m/xK7QBKqH7r8AAAAd/anime-couple-dance.gif',
     'https://media1.tenor.com/m/GrqPHbQHEXAAAAAd/dance-anime.gif',
     'https://media1.tenor.com/m/WbcrMkMEJeoAAAAd/anime-dancing-couple.gif'
-  ],
-  suplex: [
-    'https://media1.tenor.com/m/Xg7T0nZfJpQAAAAd/golden-boy-suplex.gif',
-    'https://media1.tenor.com/m/VWCfO2KnoIsAAAAd/suplex-wrestling.gif',
-    'https://media1.tenor.com/m/UrA__4JFcq4AAAAd/suplex-anime.gif',
-    'https://media1.tenor.com/m/gXF-zxnX4rIAAAAd/suplex.gif'
   ],
   dodge: [
     'https://media1.tenor.com/m/18m6P4w68WwAAAAd/anime-dodge.gif',
@@ -87,61 +83,60 @@ const CUSTOM_GIFS = {
   ]
 };
 
-// GIFs de respaldo si falla otakugifs API (fuente: nekos.best vía URL directa)
+// GIFs de respaldo si fallan las APIs de internet (fuentes estáticas de Tenor verificadas)
 const BACKUP_GIFS = {
   hug: [
-    'https://nekos.best/api/v2/hug/0001.gif',
-    'https://nekos.best/api/v2/hug/0002.gif',
-    'https://nekos.best/api/v2/hug/0003.gif'
+    'https://media.tenor.com/kCZWD1UQNu8AAAAC/hug-anime.gif',
+    'https://media.tenor.com/hyBept7V48YAAAAC/hug-anime.gif',
+    'https://media.tenor.com/xg5sn47URdwAAAAC/anime-hug.gif'
   ],
   kiss: [
-    'https://nekos.best/api/v2/kiss/0001.gif',
-    'https://nekos.best/api/v2/kiss/0002.gif'
+    'https://media.tenor.com/PnYn7AQQ4sYAAAAC/anime-kiss.gif',
+    'https://media.tenor.com/wDYW7w1Zq7QAAAAC/anime-kiss-kiss.gif'
   ],
   punch: [
-    'https://nekos.best/api/v2/punch/0001.gif',
-    'https://nekos.best/api/v2/punch/0002.gif'
+    'https://media.tenor.com/Kbit6lroRFUAAAAC/one-punch-man-saitama.gif',
+    'https://media.tenor.com/pNmajM4wmtkAAAAC/punch-smash.gif'
   ],
   kick: [
-    'https://nekos.best/api/v2/kick/0001.gif',
-    'https://nekos.best/api/v2/kick/0002.gif',
-    'https://nekos.best/api/v2/kick/0003.gif'
+    'https://media.tenor.com/o52AZQZ_PloAAAAC/kick-anime.gif',
+    'https://media.tenor.com/Lyqfq7_vJnsAAAAC/kick-funny.gif'
   ],
   slap: [
-    'https://nekos.best/api/v2/slap/0001.gif',
-    'https://nekos.best/api/v2/slap/0002.gif'
+    'https://media.tenor.com/Ws6Dm1ZW_vMAAAAC/girl-slap.gif',
+    'https://media.tenor.com/ykCjxWVvq18AAAAC/slap-slapping.gif'
   ],
   cry: [
-    'https://nekos.best/api/v2/cry/0001.gif',
-    'https://nekos.best/api/v2/cry/0002.gif'
+    'https://media.tenor.com/w2191k9m_44AAAAC/anime-cry.gif',
+    'https://media.tenor.com/978Nf_gJcTYAAAAC/anime-cry-cry.gif'
   ],
   dance: [
-    'https://nekos.best/api/v2/dance/0001.gif',
-    'https://nekos.best/api/v2/dance/0002.gif'
+    'https://media1.tenor.com/m/e2oA9c3jQ9oAAAAd/chika-dance.gif',
+    'https://media1.tenor.com/m/W2o4s1Tiv68AAAAd/anime-dance.gif'
   ],
   pat: [
-    'https://nekos.best/api/v2/pat/0001.gif',
-    'https://nekos.best/api/v2/pat/0002.gif'
+    'https://media.tenor.com/E65t_0ZCVtcAAAAC/pat-head-head-pat.gif',
+    'https://media.tenor.com/N1s726H282wAAAAC/anime-pat.gif'
   ],
   bite: [
-    'https://nekos.best/api/v2/bite/0001.gif',
-    'https://nekos.best/api/v2/bite/0002.gif'
+    'https://media.tenor.com/snO4Z7Ur71gAAAAC/bite-anime.gif',
+    'https://media.tenor.com/39660W_G-a0AAAAC/anime-bite.gif'
   ],
   kill: [
-    'https://nekos.best/api/v2/kill/0001.gif',
-    'https://nekos.best/api/v2/kill/0002.gif'
+    'https://media.tenor.com/incOq74x200AAAAC/kill-smort.gif',
+    'https://media.tenor.com/w1iXN0QJ3Q0AAAAC/kill-anime.gif'
   ],
   smile: [
-    'https://nekos.best/api/v2/smile/0001.gif',
-    'https://nekos.best/api/v2/smile/0002.gif'
+    'https://media.tenor.com/4qIeO0-835sAAAAC/anime-smile.gif',
+    'https://media.tenor.com/uR1dOqJ6w9YAAAAC/smile-anime.gif'
   ],
   wave: [
-    'https://nekos.best/api/v2/wave/0001.gif',
-    'https://nekos.best/api/v2/wave/0002.gif'
+    'https://media.tenor.com/9qBmsPZ6hcoAAAAC/wave-anime.gif',
+    'https://media.tenor.com/1G0hP5m4C4kAAAAC/hello-anime.gif'
   ],
   lick: [
-    'https://nekos.best/api/v2/lick/0001.gif',
-    'https://nekos.best/api/v2/lick/0002.gif'
+    'https://media.tenor.com/rj1k25Wn5_8AAAAC/lick-anime.gif',
+    'https://media.tenor.com/R385q0Vd1nQAAAAC/lick-anime.gif'
   ]
 };
 

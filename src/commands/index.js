@@ -2,7 +2,7 @@
 // Comandos slash del bot — Lush Family
 
 import { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
-import { db_frases, db_lore, db_triggers, db_config, db_economia, db_cooldowns } from '../memory/database.js';
+import { db_frases, db_lore, db_triggers, db_config, db_economia, db_cooldowns, db_nombres, db_memorias } from '../memory/database.js';
 import { responderMensaje, consultarGemini } from '../memory/brain.js';
 
 import { handleJob, handleVender } from '../jobs.js';
@@ -382,6 +382,29 @@ export const commands = [
     .setName('esconderse')
     .setDescription('🫣 Escóndete de alguien o escóndete solo')
     .addUserOption(opt => opt.setName('usuario').setDescription('De quién esconderte (opcional)').setRequired(false))
+    .toJSON(),
+
+  // MEMORY COMMANDS
+  new SlashCommandBuilder()
+    .setName('llamame')
+    .setDescription('🗣️ Configura cómo debe llamarte el bot')
+    .addStringOption(opt => opt.setName('nombre').setDescription('El nombre o apodo que quieres que use el bot').setRequired(true).setMaxLength(40))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('recuerdame')
+    .setDescription('🧠 Guarda un dato sobre ti en la memoria del bot')
+    .addStringOption(opt => opt.setName('dato').setDescription('Ej: Me gusta el café, juego en modo coreo, etc.').setRequired(true).setMaxLength(200))
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('mis-recuerdos')
+    .setDescription('📖 Muestra todo lo que el bot recuerda sobre ti')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('olvidame')
+    .setDescription('🧹 Borra tu nombre y todos tus recuerdos de la base de datos del bot')
     .toJSON(),
 ];
 
@@ -1240,6 +1263,65 @@ export async function handleCommand(interaction) {
     case 'esquivar':
     case 'esconderse':
       return handleRoleplayCommand(interaction);
+
+    case 'llamame': {
+      const nombre = interaction.options.getString('nombre').trim();
+      db_nombres.guardar(interaction.user.id, nombre);
+      return interaction.reply({
+        content: `🗣️ ¡Entendido! A partir de ahora te llamaré **${nombre}**.`,
+        ephemeral: true
+      });
+    }
+
+    case 'recuerdame': {
+      const dato = interaction.options.getString('dato').trim();
+      db_memorias.guardar(interaction.user.id, dato);
+      return interaction.reply({
+        content: `🧠 ¡Guardado en mi memoria! Recordaré que: *"${dato}"*.`,
+        ephemeral: true
+      });
+    }
+
+    case 'mis-recuerdos': {
+      const prefName = db_nombres.obtener(interaction.user.id);
+      const recuerdos = db_memorias.obtenerTodas(interaction.user.id);
+
+      const embed = new EmbedBuilder()
+        .setTitle(`🧠 Memoria de ${interaction.user.username}`)
+        .setColor('#9B59B6')
+        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+        .setTimestamp();
+
+      let desc = '';
+      if (prefName) {
+        desc += `🗣️ **Nombre preferido:** ${prefName}\n\n`;
+      } else {
+        desc += `🗣️ **Nombre preferido:** *Ninguno (uso tu nombre de Discord)*\n\n`;
+      }
+
+      if (recuerdos.length > 0) {
+        desc += `**Recuerdos guardados:**\n` + recuerdos.map((r, i) => `• ${r.contenido}`).join('\n');
+      } else {
+        desc += `**Recuerdos guardados:** *No tengo ningún recuerdo guardado sobre ti todavía. ¡Usa \`/recuerdame\` para agregar uno!*`;
+      }
+
+      embed.setDescription(desc);
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    case 'olvidame': {
+      // Borrar de nombres
+      try {
+        db.prepare(`DELETE FROM nombres WHERE user_id = ?`).run(interaction.user.id);
+      } catch (e) {
+        db_nombres.guardar(interaction.user.id, '');
+      }
+      db_memorias.eliminarTodas(interaction.user.id);
+      return interaction.reply({
+        content: `🧹 He borrado tu nombre preferido y todos tus recuerdos de mi memoria. ¡Empezamos de cero!`,
+        ephemeral: true
+      });
+    }
 
     default:
       return interaction.reply({ content: 'Comando no reconocido.', ephemeral: true });

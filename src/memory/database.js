@@ -102,6 +102,15 @@ db.exec(`
     fecha INTEGER DEFAULT (unixepoch()),
     PRIMARY KEY (user_id_1, user_id_2)
   );
+
+  -- Memorias / Recuerdos del usuario
+  CREATE TABLE IF NOT EXISTS memorias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    tipo TEXT DEFAULT 'nota',
+    contenido TEXT NOT NULL,
+    creado_en INTEGER DEFAULT (unixepoch())
+  );
 `);
 
 // Migración segura
@@ -374,6 +383,27 @@ export const db_matrimonios = {
       WHERE (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)
     `).run(user_id, pareja.pareja_id, pareja.pareja_id, user_id);
     return true;
+  }
+};
+
+// ─── MEMORIAS / RECUERDOS ──────────────────────────────────────────────────
+export const db_memorias = {
+  guardar(user_id, contenido, tipo = 'nota') {
+    return db.prepare(`
+      INSERT INTO memorias (user_id, contenido, tipo) VALUES (?, ?, ?)
+    `).run(user_id, contenido, tipo);
+  },
+
+  obtenerTodas(user_id) {
+    return db.prepare(`
+      SELECT * FROM memorias WHERE user_id = ? ORDER BY creado_en DESC
+    `).all(user_id);
+  },
+
+  eliminarTodas(user_id) {
+    return db.prepare(`
+      DELETE FROM memorias WHERE user_id = ?
+    `).run(user_id);
   }
 };
 
