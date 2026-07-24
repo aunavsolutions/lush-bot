@@ -78,8 +78,8 @@ async function recordAndProcess(receiver, userId, audioPlayer, guild) {
   activeRecordings.add(userId);
 
   try {
-    // 1. Grabar PCM
-    const pcmStream = receiver.subscribe(userId, {
+    // 1. Grabar PCM decodificando desde Opus
+    const opusStream = receiver.subscribe(userId, {
       end: {
         behavior: EndBehaviorType.AfterSilence,
         duration: 1500, // Espera 1.5s de silencio para cortar
@@ -89,8 +89,12 @@ async function recordAndProcess(receiver, userId, audioPlayer, guild) {
     const pcmPath = path.join(TEMP_DIR, `${userId}_${Date.now()}.pcm`);
     const mp3Path = path.join(TEMP_DIR, `${userId}_${Date.now()}.mp3`);
     
+    // Discord envía paquetes Opus crudos, necesitamos decodificarlos a PCM para ffmpeg
+    const prism = (await import('prism-media')).default || (await import('prism-media'));
+    const opusDecoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
+
     const writeStream = createWriteStream(pcmPath);
-    await pipeline(pcmStream, writeStream);
+    await pipeline(opusStream, opusDecoder, writeStream);
 
     // Si el archivo está muy pequeño (ruido), ignorar
     const stats = fs.statSync(pcmPath);
@@ -148,9 +152,10 @@ Acabas de escuchar un audio del usuario "${nombreUsuario}".
 
 REGLAS:
 1. Transcribe internamente lo que dijo.
-2. Si el usuario NO dijo la palabra "Lush", "Bot" o "Lush bot" para llamarte, o si solo es ruido de fondo, responde EXACTAMENTE y ÚNICAMENTE con la palabra: IGNORAR.
-3. Si SÍ te llamó, respóndele de forma coqueta si es mujer (como Reverie o Geri), o de forma amistosa y cool si es hombre. 
-4. Tu respuesta debe ser SOLO el texto de lo que vas a decir en voz alta. No pongas asteriscos ni acciones visuales, solo texto hablado. Se natural y corto (1 a 3 frases).
+2. Si el usuario se dirige a ti llamándote "Lush", "Bot", "Casanova", o algo parecido, respóndele.
+3. Si el audio es solo ruido, o están hablando con otra persona y no te están llamando a ti, responde EXACTAMENTE y ÚNICAMENTE con la palabra: IGNORAR.
+4. Si decides responder, hazlo de forma coqueta si es mujer, o de forma amistosa y cool si es hombre. 
+5. Tu respuesta debe ser SOLO el texto de lo que vas a decir en voz alta (1 a 3 frases). Nada de asteriscos.
 Contexto: ${squadContext.slice(0, 500)}
 `;
 
