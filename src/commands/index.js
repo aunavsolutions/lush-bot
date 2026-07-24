@@ -14,11 +14,12 @@ import { handleSaldo, handleDepositar, handleRetirar, handleTransferir, handleRo
 import { calcularNivel, obtenerTitulo, xpParaNivel, embedPerfil } from '../levels.js';
 import db from '../memory/database.js';
 import { handleRoleplayCommand, handleCasarse, handleDivorciarse, handlePareja } from '../roleplay.js';
+import { vozCommand, executeVoz } from './voz.js';
 
 // ─── DEFINICIÓN DE COMANDOS ────────────────────────────────────────────────
 
 export const commands = [
-
+  vozCommand.toJSON(),
 
   new SlashCommandBuilder()
     .setName('confesion')
@@ -642,6 +643,8 @@ export async function handleCommand(interaction) {
 
   switch (commandName) {
 
+    case 'voz':
+      return executeVoz(interaction);
 
     case 'confesion': {
       const mensaje = interaction.options.getString('mensaje');
