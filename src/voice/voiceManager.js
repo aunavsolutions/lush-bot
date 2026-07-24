@@ -52,6 +52,9 @@ async function ejecutarConRotacionVoz(action) {
 const userCooldowns = new Map();
 const COOLDOWN_MS = 4000; // 4 segundos entre grabaciones
 
+// ── FLAG: evitar que el bot se escuche a sí mismo ──────────────────────────
+let isBotSpeaking = false;
+
 function isOnCooldown(userId) {
   const lastTime = userCooldowns.get(userId);
   if (!lastTime) return false;
@@ -89,7 +92,8 @@ export async function handleVozEntrar(interaction) {
 
   // Escuchar a cualquier usuario que empiece a hablar
   receiver.speaking.on('start', (userId) => {
-    if (userId === interaction.client.user.id) return;
+    if (userId === interaction.client.user.id) return; // ignorar al bot
+    if (isBotSpeaking) return; // ignorar mientras el bot habla (evitar bucle)
     if (isOnCooldown(userId)) return;
     
     recordAndProcess(receiver, userId, audioPlayer, interaction.guild);
@@ -202,9 +206,9 @@ Contexto: ${squadContext.slice(0, 300)}`;
 
   try {
     return await ejecutarConRotacionVoz(async (genAI) => {
-      // ⚡ gemini-2.0-flash-lite: el modelo más rápido de Google, ideal para STT + respuesta corta
+      // gemini-2.5-flash: soportado en plan gratis con audio
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash-lite',
+        model: 'gemini-2.5-flash',
         generationConfig: { maxOutputTokens: 100 } // Limitar para que responda rápido
       });
       
@@ -230,6 +234,8 @@ async function playElevenLabsAudio(texto, audioPlayer) {
     console.log('[Voice] No hay ELEVENLABS_API_KEY configurada.');
     return;
   }
+
+  isBotSpeaking = true; // 🔇 Silenciar escucha mientras el bot habla
 
   try {
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`, {
@@ -262,7 +268,18 @@ async function playElevenLabsAudio(texto, audioPlayer) {
 
     audioPlayer.play(resource);
 
+    // Esperar a que termine de hablar para volver a escuchar
+    await new Promise(resolve => {
+      audioPlayer.once('stateChange', (oldState, newState) => {
+        if (newState.status === 'idle') resolve();
+      });
+      // Timeout de seguridad de 15 segundos
+      setTimeout(resolve, 15000);
+    });
+
   } catch (e) {
     console.error('[Voice] Error en ElevenLabs:', e.message);
+  } finally {
+    isBotSpeaking = false; // 🎙️ Volver a escuchar
   }
 }
