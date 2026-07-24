@@ -46,6 +46,9 @@ export async function handleVozEntrar(interaction) {
   const audioPlayer = createAudioPlayer();
   connection.subscribe(audioPlayer);
 
+  // Truco: Para que Discord nos envíe audio, el bot DEBE hablar primero (abrir el puerto UDP)
+  playElevenLabsAudio("Ya llegué.", audioPlayer).catch(console.error);
+
   // Escuchar a cualquier usuario que empiece a hablar
   receiver.speaking.on('start', (userId) => {
     // Para evitar solapamientos pesados, podríamos filtrar
