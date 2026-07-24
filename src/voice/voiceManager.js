@@ -51,8 +51,7 @@ export async function handleVozEntrar(interaction) {
 
   // Escuchar a cualquier usuario que empiece a hablar
   receiver.speaking.on('start', (userId) => {
-    // Para evitar solapamientos pesados, podríamos filtrar
-    // pero por ahora grabamos la frase
+    console.log(`[Voice] 🎤 Usuario ${userId} empezó a hablar.`);
     recordAndProcess(receiver, userId, audioPlayer, interaction.guild);
   });
 }
@@ -76,6 +75,7 @@ async function recordAndProcess(receiver, userId, audioPlayer, guild) {
   if (userId === guild.client.user.id) return;
   
   activeRecordings.add(userId);
+  console.log(`[Voice] 🔴 Iniciando grabación para ${userId}...`);
 
   try {
     // 1. Grabar PCM decodificando desde Opus
@@ -94,32 +94,45 @@ async function recordAndProcess(receiver, userId, audioPlayer, guild) {
     const opusDecoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
 
     const writeStream = createWriteStream(pcmPath);
+    
+    opusStream.on('end', () => {
+      console.log(`[Voice] ⏹️ Silencio detectado de ${userId}, procesando audio...`);
+    });
+
     await pipeline(opusStream, opusDecoder, writeStream);
 
     // Si el archivo está muy pequeño (ruido), ignorar
     const stats = fs.statSync(pcmPath);
-    if (stats.size < 40000) {
+    console.log(`[Voice] 📁 Tamaño del PCM grabado: ${stats.size} bytes`);
+    
+    if (stats.size < 4000) {
+      console.log(`[Voice] ⚠️ Archivo muy pequeño (${stats.size} bytes), ignorando...`);
       // ruido muy corto
       fs.unlinkSync(pcmPath);
       activeRecordings.delete(userId);
       return;
     }
 
+    console.log(`[Voice] ⚙️ Convirtiendo a MP3...`);
     // 2. Convertir PCM a MP3
     await convertPcmToMp3(pcmPath, mp3Path);
     
+    console.log(`[Voice] 🧠 Enviando a Gemini...`);
     // 3. Enviar a Gemini para Transcripción/Respuesta
     const base64Audio = fs.readFileSync(mp3Path).toString('base64');
     fs.unlinkSync(pcmPath);
     fs.unlinkSync(mp3Path);
 
     const respuestaGemini = await procesarAudioConGemini(base64Audio, userId, guild);
+    console.log(`[Voice] 💬 Gemini respondió: ${respuestaGemini}`);
+    
     if (respuestaGemini && respuestaGemini !== 'IGNORAR') {
+      console.log(`[Voice] 🗣️ Reproduciendo en ElevenLabs...`);
       // 4. Convertir texto a voz con ElevenLabs
       await playElevenLabsAudio(respuestaGemini, audioPlayer);
     }
   } catch (error) {
-    console.error('[Voice] Error procesando audio:', error.message);
+    console.error('[Voice] ❌ Error procesando audio:', error.message);
   } finally {
     activeRecordings.delete(userId);
   }
