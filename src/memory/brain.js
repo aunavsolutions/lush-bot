@@ -31,7 +31,7 @@ async function ejecutarConRotacion(action) {
 }
 
 // Construye el contexto del squad para que Gemini lo entienda
-function buildSquadContext() {
+export function buildSquadContext() {
   const frases = db_frases.obtenerRecientes(15);
   const lore = db_lore.obtenerTodo(10);
 
