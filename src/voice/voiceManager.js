@@ -20,8 +20,7 @@ import { db_config } from '../memory/database.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { buildSquadContext } from '../memory/brain.js';
 
-// Usamos el mismo Gemini configurado en la app
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Ya no inicializamos genAI aquí para poder parsear bien la lista de keys
 
 const TEMP_DIR = path.join(process.cwd(), 'temp_audio');
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
@@ -154,6 +153,11 @@ function convertPcmToMp3(inputPath, outputPath) {
 }
 
 async function procesarAudioConGemini(base64Audio, userId, guild) {
+  // Manejar caso donde el usuario tenga múltiples keys separadas por coma en la variable de entorno
+  const keys = (process.env.GEMINI_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+  const apiKey = keys[0] || '';
+  
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
   
   const squadContext = buildSquadContext();
