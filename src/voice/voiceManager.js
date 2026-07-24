@@ -7,9 +7,7 @@ import {
   AudioPlayerStatus,
   StreamType
 } from '@discordjs/voice';
-import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
-import { Transform } from 'stream';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
 import fs from 'fs';
@@ -17,14 +15,13 @@ import path from 'path';
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-import { db_config } from '../memory/database.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { buildSquadContext } from '../memory/brain.js';
 
 const TEMP_DIR = path.join(process.cwd(), 'temp_audio');
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
 
-// ── ROTACIÓN DE API KEYS (igual que brain.js) ──────────────────────────────
+// ── ROTACIÓN DE API KEYS ────────────────────────────────────────────────────
 const getApiKeys = () => {
   return (process.env.GEMINI_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
 };
@@ -33,9 +30,7 @@ let currentKeyIndex = 0;
 
 async function ejecutarConRotacionVoz(action) {
   const keys = getApiKeys();
-  if (keys.length === 0) {
-    throw new Error('No se configuraron API Keys de Gemini.');
-  }
+  if (keys.length === 0) throw new Error('No se configuraron API Keys de Gemini.');
 
   for (let i = 0; i < keys.length; i++) {
     const idx = (currentKeyIndex + i) % keys.length;
@@ -43,13 +38,11 @@ async function ejecutarConRotacionVoz(action) {
     try {
       const genAI = new GoogleGenerativeAI(key);
       const result = await action(genAI);
-      currentKeyIndex = (idx + 1) % keys.length; // Rotar para la siguiente vez
+      currentKeyIndex = (idx + 1) % keys.length;
       return result;
     } catch (error) {
       console.error(`[Voice] Error con API Key #${idx + 1}:`, error.message);
-      if (i === keys.length - 1) {
-        throw error;
-      }
+      if (i === keys.length - 1) throw error;
       console.log(`[Voice] Rotando a la siguiente API Key...`);
     }
   }
@@ -57,7 +50,7 @@ async function ejecutarConRotacionVoz(action) {
 
 // ── COOLDOWN POR USUARIO ────────────────────────────────────────────────────
 const userCooldowns = new Map();
-const COOLDOWN_MS = 5000; // 5 segundos entre grabaciones del mismo usuario
+const COOLDOWN_MS = 4000; // 4 segundos entre grabaciones
 
 function isOnCooldown(userId) {
   const lastTime = userCooldowns.get(userId);
@@ -96,12 +89,9 @@ export async function handleVozEntrar(interaction) {
 
   // Escuchar a cualquier usuario que empiece a hablar
   receiver.speaking.on('start', (userId) => {
-    // No escucharnos a nosotros mismos
     if (userId === interaction.client.user.id) return;
-    // Cooldown para no spamear
     if (isOnCooldown(userId)) return;
     
-    console.log(`[Voice] 🎤 Usuario ${userId} empezó a hablar.`);
     recordAndProcess(receiver, userId, audioPlayer, interaction.guild);
   });
 }
@@ -123,140 +113,109 @@ async function recordAndProcess(receiver, userId, audioPlayer, guild) {
   
   activeRecordings.add(userId);
   setCooldown(userId);
-  console.log(`[Voice] 🔴 Iniciando grabación para ${userId}...`);
+  const startTime = Date.now();
 
   try {
     const opusStream = receiver.subscribe(userId, {
       end: {
         behavior: EndBehaviorType.AfterSilence,
-        duration: 2000, // 2s de silencio para cortar
+        duration: 1000, // ⚡ 1 segundo de silencio (antes 2s)
       },
     });
 
-    const pcmPath = path.join(TEMP_DIR, `${userId}_${Date.now()}.pcm`);
-    const mp3Path = pcmPath.replace('.pcm', '.mp3');
+    const timestamp = Date.now();
+    const pcmPath = path.join(TEMP_DIR, `${userId}_${timestamp}.pcm`);
+    const wavPath = path.join(TEMP_DIR, `${userId}_${timestamp}.wav`);
 
-    // Decodificar Opus a PCM con manejo de paquetes inválidos
+    // Decodificar Opus a PCM
     const prism = (await import('prism-media')).default || (await import('prism-media'));
     const opusDecoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
     
-    // Interceptar errores del decodificador sin crashear el pipeline
-    opusDecoder.on('error', (err) => {
-      console.log(`[Voice] ⚠️ Paquete Opus inválido (ignorado): ${err.message}`);
-    });
+    // Ignorar paquetes Opus inválidos sin crashear
+    opusDecoder.on('error', () => {});
 
     const writeStream = createWriteStream(pcmPath);
 
-    // Usar pipeline manual para manejar errores de Opus sin matar el stream
-    try {
-      await new Promise((resolve, reject) => {
-        opusStream.pipe(opusDecoder).pipe(writeStream);
-        writeStream.on('finish', resolve);
-        writeStream.on('error', reject);
-        opusStream.on('error', (err) => {
-          console.log(`[Voice] ⚠️ Error en opus stream: ${err.message}`);
-          resolve(); // No rechazar, dejar que procese lo que pudo grabar
-        });
-      });
-    } catch (pipeErr) {
-      console.log(`[Voice] ⚠️ Error en pipeline (continuando): ${pipeErr.message}`);
-    }
+    await new Promise((resolve, reject) => {
+      opusStream.pipe(opusDecoder).pipe(writeStream);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+      opusStream.on('error', () => resolve());
+    });
 
-    // Verificar que el archivo existe y tiene tamaño suficiente
-    if (!fs.existsSync(pcmPath)) {
-      console.log(`[Voice] ⚠️ No se generó archivo PCM, ignorando...`);
-      activeRecordings.delete(userId);
-      return;
-    }
-
+    // Verificar tamaño
+    if (!fs.existsSync(pcmPath)) { activeRecordings.delete(userId); return; }
     const stats = fs.statSync(pcmPath);
-    console.log(`[Voice] 📁 Tamaño del PCM grabado: ${stats.size} bytes`);
     
     if (stats.size < 10000) {
-      console.log(`[Voice] ⚠️ Archivo muy pequeño (${stats.size} bytes), ignorando...`);
-      fs.unlinkSync(pcmPath);
+      try { fs.unlinkSync(pcmPath); } catch(e) {}
       activeRecordings.delete(userId);
       return;
     }
 
-    // Convertir PCM a MP3
-    console.log(`[Voice] ⚙️ Convirtiendo a MP3...`);
-    await convertPcmToMp3(pcmPath, mp3Path);
+    // ⚡ Convertir PCM → WAV (mucho más rápido que MP3, Gemini lo acepta igual)
+    await convertPcmToWav(pcmPath, wavPath);
     
-    // Enviar a Gemini con rotación de keys
-    console.log(`[Voice] 🧠 Enviando a Gemini...`);
-    const base64Audio = fs.readFileSync(mp3Path).toString('base64');
-    
-    // Limpiar archivos temporales
+    const base64Audio = fs.readFileSync(wavPath).toString('base64');
     try { fs.unlinkSync(pcmPath); } catch(e) {}
-    try { fs.unlinkSync(mp3Path); } catch(e) {}
+    try { fs.unlinkSync(wavPath); } catch(e) {}
 
+    // ⚡ Enviar a Gemini (modelo rápido)
     const respuestaGemini = await procesarAudioConGemini(base64Audio, userId, guild);
-    console.log(`[Voice] 💬 Gemini respondió: ${respuestaGemini}`);
     
     if (respuestaGemini && respuestaGemini !== 'IGNORAR') {
-      console.log(`[Voice] 🗣️ Reproduciendo con ElevenLabs...`);
+      // ⚡ Generar voz y reproducir
+      const totalMs = Date.now() - startTime;
+      console.log(`[Voice] ✅ Respuesta en ${totalMs}ms: "${respuestaGemini}"`);
       await playElevenLabsAudio(respuestaGemini, audioPlayer);
-      console.log(`[Voice] ✅ Respuesta enviada al canal de voz.`);
     }
   } catch (error) {
-    console.error('[Voice] ❌ Error procesando audio:', error.message);
+    console.error('[Voice] ❌ Error:', error.message);
   } finally {
     activeRecordings.delete(userId);
   }
 }
 
-function convertPcmToMp3(inputPath, outputPath) {
+// ⚡ WAV es más rápido de generar que MP3 (sin compresión compleja)
+function convertPcmToWav(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
-      .inputOptions([
-        '-f s16le',
-        '-ar 48000',
-        '-ac 2'
-      ])
-      .outputOptions('-b:a 64k')
+      .inputOptions(['-f s16le', '-ar 48000', '-ac 2'])
+      .outputOptions(['-c:a pcm_s16le', '-ar 16000', '-ac 1']) // Mono 16kHz para Gemini (archivo más pequeño = envío más rápido)
       .save(outputPath)
       .on('end', resolve)
       .on('error', reject);
   });
 }
 
-// ── GEMINI CON ROTACIÓN ─────────────────────────────────────────────────────
+// ── GEMINI (modelo rápido) ──────────────────────────────────────────────────
 
 async function procesarAudioConGemini(base64Audio, userId, guild) {
   const squadContext = buildSquadContext();
   const nombreUsuario = guild.members.cache.get(userId)?.displayName || 'Alguien';
 
-  const promptTexto = `
-Eres Lush Bot, en tu modo Casanova. Estás escuchando un canal de voz de Discord.
-Acabas de escuchar un audio del usuario "${nombreUsuario}".
-
-REGLAS:
-1. Transcribe internamente lo que dijo el usuario.
-2. Si el usuario dice la palabra "Bot" (o algo que suene muy parecido como "bот", "boh", "bought") en cualquier parte de su frase, entonces TE ESTÁ HABLANDO A TI. Respóndele.
-3. Si el usuario NO dice "Bot" en ningún momento, o si el audio es solo ruido/silencio, responde EXACTAMENTE con: IGNORAR
-4. Si decides responder, hazlo de forma coqueta si es mujer, o de forma amistosa y cool si es hombre. 
-5. Tu respuesta debe ser SOLO el texto hablado (1 a 3 frases cortas). Sin asteriscos ni emojis.
-Contexto: ${squadContext.slice(0, 500)}
-`;
+  // ⚡ Prompt corto = respuesta más rápida
+  const promptTexto = `Eres Lush Bot (modo Casanova) en un canal de voz de Discord. Audio de "${nombreUsuario}".
+Si dice "Bot": responde coqueto (mujer) o cool (hombre), 1-2 frases, solo texto hablado.
+Si NO dice "Bot" o es ruido: responde solo IGNORAR.
+Contexto: ${squadContext.slice(0, 300)}`;
 
   try {
     return await ejecutarConRotacionVoz(async (genAI) => {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      // ⚡ gemini-2.0-flash-lite: el modelo más rápido de Google, ideal para STT + respuesta corta
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-2.0-flash-lite',
+        generationConfig: { maxOutputTokens: 100 } // Limitar para que responda rápido
+      });
       
       const result = await model.generateContent([
         promptTexto,
-        {
-          inlineData: {
-            mimeType: "audio/mp3",
-            data: base64Audio
-          }
-        }
+        { inlineData: { mimeType: "audio/wav", data: base64Audio } }
       ]);
       return result.response.text().trim();
     });
   } catch (e) {
-    console.error('[Voice] Error en Gemini (todas las keys fallaron):', e.message);
+    console.error('[Voice] Error en Gemini:', e.message);
     return 'IGNORAR';
   }
 }
@@ -282,10 +241,10 @@ async function playElevenLabsAudio(texto, audioPlayer) {
       },
       body: JSON.stringify({
         text: texto,
-        model_id: 'eleven_multilingual_v2',
+        model_id: 'eleven_turbo_v2_5', // ⚡ Modelo turbo de ElevenLabs (3x más rápido que multilingual_v2)
         voice_settings: {
           stability: 0.5,
-          similarity_boost: 0.5
+          similarity_boost: 0.75
         }
       })
     });
